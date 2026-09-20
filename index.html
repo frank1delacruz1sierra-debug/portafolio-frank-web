@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Portafolio académico de Frank de la Cruz Sierra." />
+  <title>Portafolio | Frank de la Cruz Sierra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <div class="grid-overlay"></div>
+
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="brand" href="#inicio" aria-label="Inicio">
+        <span class="brand-icon">F</span>
+        <span>FRANK<span class="brand-dot">.</span>DEV</span>
+      </a>
+
+      <div class="course-windows" aria-label="Cursos">
+        <button class="course-window active" data-course="algoritmos">
+          <span class="course-dot"></span>Algoritmos
+        </button>
+        <button class="course-window" data-course="aplicaciones">
+          <span class="course-dot"></span>Aplicaciones
+        </button>
+      </div>
+
+      <div class="header-actions">
+        <nav class="desktop-nav">
+          <a href="#inicio">Inicio</a>
+          <a href="#sobre-mi">Sobre mí</a>
+          <a href="#actividades">Actividades</a>
+        </nav>
+        <button class="login-trigger" id="loginOpenBtn">
+          <span class="login-icon">↗</span><span id="loginButtonText">Iniciar sesión</span>
+        </button>
+        <button class="menu-button" id="menuButton" aria-label="Abrir menú">☰</button>
+      </div>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#inicio">Inicio</a>
+      <a href="#sobre-mi">Sobre mí</a>
+      <a href="#actividades">Actividades</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero section-theme theme-home" id="inicio">
+      <div class="floating-code code-a">&lt;portfolio /&gt;</div>
+      <div class="floating-code code-b">01 10 11 01</div>
+      <div class="container hero-grid">
+        <div class="hero-copy reveal">
+          <div class="mini-label"><span></span> PORTAFOLIO ACADÉMICO 2026</div>
+          <div class="course-kicker" id="courseKicker">ALGORITMOS Y BASES DE DATOS</div>
+          <h1>Ideas que se convierten en <span>soluciones.</span></h1>
+          <p class="hero-text">Soy <strong>Frank de la Cruz Sierra</strong>, estudiante de Ingeniería de Sistemas y Computación. Este espacio reúne mis actividades, proyectos y evidencias académicas.</p>
+          <div class="hero-buttons">
+            <a class="button primary" href="#actividades">Explorar actividades <span>→</span></a>
+            <a class="button ghost" href="#sobre-mi">Conocer mi perfil</a>
+          </div>
+          <div class="metric-row">
+            <div><strong>02</strong><span>Cursos</span></div>
+            <div><strong>04</strong><span>Unidades</span></div>
+            <div><strong>16</strong><span>Semanas por curso</span></div>
+          </div>
+        </div>
+
+        <div class="portrait-wrap reveal">
+          <div class="portrait-glow"></div>
+          <div class="portrait-card tilt-card">
+            <img src="assets/frank-perfil.webp" alt="Frank de la Cruz Sierra" />
+            <div class="portrait-overlay"></div>
+            <div class="portrait-caption">
+              <div>
+                <span class="online-dot"></span>
+                <strong>Frank de la Cruz Sierra</strong>
+              </div>
+              <small>Ingeniería de Sistemas y Computación</small>
+            </div>
+          </div>
+          <div class="floating-tag tag-one">JAVA</div>
+          <div class="floating-tag tag-two">WEB</div>
+          <div class="floating-tag tag-three">DB</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-theme theme-about" id="sobre-mi">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="section-number">01</span>
+          <div>
+            <p class="eyebrow">SOBRE MÍ</p>
+            <h2>Perfil académico y tecnológico</h2>
+            <p class="section-intro">Mi formación combina programación, bases de datos y desarrollo de soluciones digitales.</p>
+          </div>
+        </div>
+
+        <div class="about-layout">
+          <article class="identity-card reveal tilt-card">
+            <div class="identity-photo"><img src="assets/frank-perfil.webp" alt="Retrato de Frank" /></div>
+            <div>
+              <p class="eyebrow">ESTUDIANTE</p>
+              <h3>Frank de la Cruz Sierra</h3>
+              <p>Ingeniería de Sistemas y Computación</p>
+            </div>
+            <dl>
+              <div><dt>Universidad</dt><dd>Universidad Peruana Los Andes</dd></div>
+              <div><dt>Enfoque</dt><dd>Desarrollo de Software</dd></div>
+              <div><dt>Área</dt><dd>Programación y tecnología</dd></div>
+            </dl>
+          </article>
+
+          <div class="about-cards">
+            <article class="info-card cyan reveal">
+              <span class="card-index">01</span><h3>Mi perfil</h3>
+              <p>Me interesa crear software útil, comprender la lógica detrás de los sistemas y transformar ideas en proyectos funcionales.</p>
+            </article>
+            <article class="info-card violet reveal">
+              <span class="card-index">02</span><h3>Habilidades</h3>
+              <div class="skill-list"><span>Java</span><span>HTML</span><span>CSS</span><span>JavaScript</span><span>JSP</span><span>GitHub</span><span>Power Apps</span><span>SharePoint</span></div>
+            </article>
+            <article class="info-card coral reveal">
+              <span class="card-index">03</span><h3>Objetivo</h3>
+              <p>Fortalecer mis conocimientos y documentar mi progreso mediante actividades, proyectos y evidencias organizadas por curso.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-theme theme-activities" id="actividades">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="section-number">02</span>
+          <div>
+            <p class="eyebrow">ACTIVIDADES</p>
+            <h2 id="activitiesHeading">Algoritmos · 4 unidades</h2>
+            <p class="section-intro">Selecciona una unidad. Cada curso contiene 4 unidades y cada unidad tiene 4 semanas.</p>
+          </div>
+        </div>
+
+        <div class="unit-selector reveal" id="unitSelector"></div>
+        <div class="weeks-grid" id="weeksGrid"></div>
+      </div>
+    </section>
+
+    <section class="section section-theme theme-final">
+      <div class="container">
+        <div class="final-card reveal">
+          <div class="final-light"></div>
+          <p class="eyebrow">PORTAFOLIO DIGITAL</p>
+          <h2>Dos cursos. Un solo espacio para mostrar mi progreso.</h2>
+          <p>Cambia entre Algoritmos y Aplicaciones desde las ventanas superiores.</p>
+          <a href="#top" class="button ghost">Volver arriba ↑</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> Frank de la Cruz Sierra</p>
+      <p>Portafolio académico · Ingeniería de Sistemas</p>
+    </div>
+  </footer>
+
+  <div class="modal" id="loginModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close="loginModal"></div>
+    <section class="login-panel" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <button class="modal-close" data-close="loginModal" aria-label="Cerrar">×</button>
+      <div class="login-visual">
+        <div class="login-photo"><img src="assets/frank-perfil.webp" alt="Frank" /></div>
+        <div>
+          <span class="secure-chip">ACCESO PRIVADO</span>
+          <h2 id="loginTitle">Bienvenido, Frank</h2>
+          <p>Ingresa a tu panel personalizado para administrar las actividades de ambos cursos.</p>
+        </div>
+      </div>
+
+      <form id="loginForm" class="login-form">
+        <label>Usuario
+          <div class="field-wrap"><span>◎</span><input id="loginUser" type="text" autocomplete="username" placeholder="Frank" required /></div>
+        </label>
+        <label>Contraseña
+          <div class="field-wrap"><span>⌁</span><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tu contraseña" required /><button type="button" class="show-password" id="showPassword" aria-label="Mostrar contraseña">Ver</button></div>
+        </label>
+        <p class="form-message" id="loginMessage"></p>
+        <button class="button primary full" type="submit">Entrar al panel <span>→</span></button>
+      </form>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="cloud.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

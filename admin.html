@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel de Frank | Portafolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="admin-glow glow-one"></div><div class="admin-glow glow-two"></div>
+  <aside class="sidebar">
+    <a href="index.html" class="admin-brand"><span>F</span><strong>FRANK.DEV</strong></a>
+    <div class="profile-mini"><img src="assets/frank-perfil.webp" alt="Frank"><div><strong>Frank</strong><small>Administrador</small></div></div>
+    <nav class="side-nav">
+      <button class="side-link active" data-course="algoritmos"><span>⌘</span><div><strong>Algoritmos</strong><small>Algoritmos y bases de datos</small></div></button>
+      <button class="side-link" data-course="aplicaciones"><span>◇</span><div><strong>Aplicaciones</strong><small>Desarrollo de aplicaciones</small></div></button>
+    </nav>
+    <div class="sidebar-bottom"><a href="index.html">← Ver portafolio</a><button id="logoutButton">Cerrar sesión</button></div>
+  </aside>
+
+  <main class="dashboard">
+    <header class="dashboard-header">
+      <div><p class="eyebrow">PANEL PERSONALIZADO</p><h1>Hola, Frank <span>👋</span></h1><p>Administra tus actividades y archivos desde un solo lugar.</p></div>
+      <div class="header-badge"><span></span> Sesión activa</div>
+    </header>
+
+    <section class="stats-grid">
+      <article><small>Curso seleccionado</small><strong id="statCourse">Algoritmos</strong><span id="statCourseFull">Algoritmos y bases de datos</span></article>
+      <article><small>Actividades publicadas</small><strong id="statPublished">0</strong><span>de 16 semanas</span></article>
+      <article><small>Unidad activa</small><strong id="statUnit">01</strong><span>4 semanas por unidad</span></article>
+    </section>
+
+    <section class="workspace">
+      <div class="content-panel">
+        <div class="panel-head"><div><p class="eyebrow">SELECCIÓN</p><h2 id="courseTitle">Algoritmos</h2></div><span class="course-pill" id="coursePill">Algoritmos y bases de datos</span></div>
+        <div class="admin-units" id="adminUnits"></div>
+        <div class="admin-weeks" id="adminWeeks"></div>
+      </div>
+
+      <aside class="editor-panel">
+        <div class="editor-head"><p class="eyebrow">EDITOR</p><h2 id="editorTitle">Unidad 1 · Semana 1</h2><p>Escribe la descripción y adjunta el archivo de la actividad.</p></div>
+        <form id="activityForm">
+          <label>Descripción
+            <textarea id="description" rows="7" placeholder="Escribe la descripción de esta actividad..."></textarea>
+          </label>
+          <label class="upload-zone" id="uploadZone">
+            <input type="file" id="fileInput" />
+            <span class="upload-icon">↑</span>
+            <strong>Seleccionar archivo</strong>
+            <small>Admite cualquier tipo de archivo.</small>
+            <span class="selected-file" id="selectedFile">Ningún archivo seleccionado</span>
+          </label>
+          <div class="current-file" id="currentFile"></div>
+          <p class="form-message" id="formMessage"></p>
+          <div class="form-actions"><button class="primary-btn" type="submit">Guardar actividad</button><button class="danger-btn" type="button" id="deleteButton">Eliminar</button></div>
+        </form>
+      </aside>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="cloud.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
