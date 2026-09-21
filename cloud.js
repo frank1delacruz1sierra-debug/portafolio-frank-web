@@ -173,6 +173,23 @@ const PortfolioCloud = (() => {
     return data;
   }
 
+  async function sendPasswordReset() {
+    requireConfig();
+    const redirectTo = new URL('reset.html', window.location.href).href;
+    const { data, error } = await client().auth.resetPasswordForEmail(cfg().adminEmail, { redirectTo });
+    if (error) throw new Error(error.message || 'No se pudo enviar el correo de recuperación.');
+    return data;
+  }
+
+  async function updateRecoveredPassword(newPassword) {
+    requireConfig();
+    const next = String(newPassword || '');
+    if (next.length < 8) throw new Error('La nueva contraseña debe tener al menos 8 caracteres.');
+    const { data, error } = await client().auth.updateUser({ password: next });
+    if (error) throw new Error(error.message || 'No se pudo actualizar la contraseña.');
+    return data;
+  }
+
   async function changePassword(currentPassword, newPassword) {
     requireConfig();
     const current = String(currentPassword || '');
@@ -216,6 +233,8 @@ const PortfolioCloud = (() => {
     save,
     remove,
     signIn,
+    sendPasswordReset,
+    updateRecoveredPassword,
     changePassword,
     signOut,
     session

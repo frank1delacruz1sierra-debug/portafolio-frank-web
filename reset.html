@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Cambiar contraseña | Frank.DEV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div><div class="grid-overlay"></div>
+  <main class="reset-page">
+    <div class="reset-shell">
+      <a class="reset-back" href="index.html">← Volver al portafolio</a>
+      <section class="reset-card">
+        <p class="eyebrow">SEGURIDAD</p>
+        <h1>Cambiar contraseña</h1>
+        <p>Escribe una contraseña nueva para tu cuenta de administrador.</p>
+        <div class="reset-waiting" id="resetWaiting"><strong>Validando enlace…</strong><span>Espera un momento.</span></div>
+        <form class="reset-form" id="resetForm" hidden>
+          <label>Nueva contraseña
+            <div class="reset-field"><input id="resetPassword" type="password" minlength="8" autocomplete="new-password" required><button type="button" class="reset-toggle" data-target="resetPassword">Ver</button></div>
+          </label>
+          <label>Confirmar contraseña
+            <div class="reset-field"><input id="resetPasswordConfirm" type="password" minlength="8" autocomplete="new-password" required><button type="button" class="reset-toggle" data-target="resetPasswordConfirm">Ver</button></div>
+          </label>
+          <p class="reset-status" id="resetStatus"></p>
+          <button class="button primary full" type="submit">Guardar nueva contraseña <span>→</span></button>
+        </form>
+      </section>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="cloud.js"></script>
+  <script src="reset.js"></script>
+</body>
+</html>

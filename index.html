@@ -36,6 +36,7 @@
           <a href="#inicio">Inicio</a>
           <a href="#sobre-mi">Sobre mí</a>
           <a href="#actividades">Actividades</a>
+          <a href="#proyectos">Proyectos entregados</a>
         </nav>
         <button class="login-trigger" id="loginOpenBtn">
           <span class="login-icon">↗</span><span id="loginButtonText">Iniciar sesión</span>
@@ -47,6 +48,7 @@
       <a href="#inicio">Inicio</a>
       <a href="#sobre-mi">Sobre mí</a>
       <a href="#actividades">Actividades</a>
+      <a href="#proyectos">Proyectos entregados</a>
     </div>
   </header>
 
@@ -151,6 +153,32 @@
       </div>
     </section>
 
+    <section class="section section-theme theme-projects" id="proyectos">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="section-number">03</span>
+          <div>
+            <p class="eyebrow">PROYECTOS ENTREGADOS</p>
+            <h2>Actividades publicadas</h2>
+            <p class="section-intro">Consulta en un solo lugar las actividades que ya fueron publicadas. Puedes abrirlas en línea o descargar sus archivos.</p>
+          </div>
+        </div>
+
+        <div class="projects-toolbar reveal">
+          <div class="project-filters" id="projectFilters">
+            <button class="project-filter active" data-filter="all">Todos</button>
+            <button class="project-filter" data-filter="algoritmos">Algoritmos</button>
+            <button class="project-filter" data-filter="aplicaciones">Aplicaciones</button>
+          </div>
+          <div class="projects-count"><strong id="projectsCount">0</strong><span>publicadas</span></div>
+        </div>
+
+        <div class="projects-grid" id="projectsGrid">
+          <div class="projects-loading">Cargando actividades publicadas…</div>
+        </div>
+      </div>
+    </section>
+
     <section class="section section-theme theme-final">
       <div class="container">
         <div class="final-card reveal">
@@ -193,6 +221,7 @@
         </label>
         <p class="form-message" id="loginMessage"></p>
         <button class="button primary full" type="submit">Entrar al panel <span>→</span></button>
+        <button class="password-recovery-link" id="forgotPasswordBtn" type="button">¿No recuerdas tu contraseña? <strong>Cambiar contraseña</strong></button>
       </form>
     </section>
   </div>

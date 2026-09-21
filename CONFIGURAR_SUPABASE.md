@@ -110,3 +110,15 @@ Nunca copies una Secret key o `service_role` key dentro de archivos públicos de
 ## Archivos grandes
 
 El selector acepta cualquier tipo de archivo. Para archivos grandes, la carga estándar puede ser menos fiable; conviene mantener los archivos académicos en tamaños moderados.
+
+
+## Recuperación de contraseña en GitHub Pages
+En Supabase abre **Authentication → URL Configuration** y agrega como Redirect URL:
+
+`https://frank1delacruz1sierra-debug.github.io/portafolio-frank-web/reset.html`
+
+Mantén también como Site URL la raíz de tu portafolio:
+
+`https://frank1delacruz1sierra-debug.github.io/portafolio-frank-web/`
+
+Esto permite que el botón **Cambiar contraseña** del login envíe un correo y que el enlace regrese a `reset.html`.
