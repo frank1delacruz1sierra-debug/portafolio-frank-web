@@ -9,9 +9,17 @@
 -- Tabla public.activities
 alter table public.activities enable row level security;
 
+drop policy if exists "admin_read_activities" on public.activities;
 drop policy if exists "admin_insert_activities" on public.activities;
 drop policy if exists "admin_update_activities" on public.activities;
 drop policy if exists "admin_delete_activities" on public.activities;
+
+
+create policy "admin_read_activities"
+on public.activities
+for select
+to authenticated
+using ((select auth.uid()) = '9c980715-ef52-4ad6-8058-d1bbff30ac06'::uuid);
 
 create policy "admin_insert_activities"
 on public.activities

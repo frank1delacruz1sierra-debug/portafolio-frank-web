@@ -15,15 +15,16 @@ function fileType(name=''){
   const ext = name.split('.').pop()?.toLowerCase() || '';
   if(['png','jpg','jpeg','gif','webp','svg'].includes(ext)) return 'IMG';
   if(ext==='pdf') return 'PDF';
-  if(['doc','docx','odt'].includes(ext)) return 'DOC';
+  if(['doc','docx','odt','txt'].includes(ext)) return 'DOC';
   if(['xls','xlsx','csv'].includes(ext)) return 'XLS';
   if(['ppt','pptx'].includes(ext)) return 'PPT';
   if(['zip','rar','7z'].includes(ext)) return 'ZIP';
-  if(['java','js','html','css','php','py','sql','jsp','json','xml'].includes(ext)) return 'CODE';
+  if(['java','js','html','css','php','py','sql','jsp','json','xml','c','cpp','cs'].includes(ext)) return 'CODE';
   return 'FILE';
 }
 function isImage(name=''){ return ['png','jpg','jpeg','gif','webp','svg'].includes(name.split('.').pop()?.toLowerCase()); }
 function escapeHtml(v=''){return String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
+function publishedFiles(a){ return (a?.files || []).filter(f=>f?.url); }
 
 function renderUnits(){
   const host = $('#unitSelector'); host.innerHTML='';
@@ -32,6 +33,16 @@ function renderUnits(){
     b.className=`unit-btn ${i===activeUnit?'active':''}`; b.textContent=`Unidad ${i}`;
     b.onclick=()=>{activeUnit=i;renderUnits();renderWeeks()}; host.appendChild(b);
   }
+}
+
+function compactFileCard(f){
+  const name=escapeHtml(f.label||f.name||'Archivo');
+  const rawName=escapeHtml(f.name||'archivo');
+  const url=escapeHtml(f.url||'');
+  return `<div class="file-card multi-public-file">
+    <div class="file-meta"><div class="file-icon">${fileType(f.name)}</div><div class="file-name-wrap"><div class="file-name" title="${name}">${name}</div><small>${escapeHtml(f.category||'Archivo')}</small></div></div>
+    <div class="file-actions"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>
+  </div>`;
 }
 
 function makeWeekCard(week, a){
@@ -46,12 +57,14 @@ function makeWeekCard(week, a){
   const h=document.createElement('h3'); h.textContent=`Semana ${week}`; card.appendChild(h);
 
   if(a){
+    if(a.title){ const t=document.createElement('h4'); t.className='week-activity-title'; t.textContent=a.title; card.appendChild(t); }
     if(a.description){ const p=document.createElement('p'); p.className='week-description'; p.textContent=a.description; card.appendChild(p); }
-    if(a.fileUrl){
-      if(isImage(a.fileName)){ const img=document.createElement('img'); img.className='image-preview'; img.src=a.fileUrl; img.alt=`Vista previa de ${a.fileName}`; img.loading='lazy'; card.appendChild(img); }
-      const f=document.createElement('div'); f.className='file-card';
-      f.innerHTML=`<div class="file-meta"><div class="file-icon">${fileType(a.fileName)}</div><div class="file-name" title="${escapeHtml(a.fileName)}">${escapeHtml(a.fileName)}</div></div><div class="file-actions"><a href="${a.fileUrl}" target="_blank" rel="noopener">Abrir</a><a href="${a.fileUrl}?download=${encodeURIComponent(a.fileName || 'archivo')}" target="_blank" rel="noopener">Descargar</a></div>`;
-      card.appendChild(f);
+    const files=publishedFiles(a);
+    if(files.length){
+      const wrap=document.createElement('div'); wrap.className='week-files-list';
+      files.slice(0,3).forEach(f=>wrap.insertAdjacentHTML('beforeend',compactFileCard(f)));
+      if(files.length>3){const more=document.createElement('div');more.className='more-files';more.textContent=`+ ${files.length-3} archivo(s) más en Proyectos entregados`;wrap.appendChild(more)}
+      card.appendChild(wrap);
     }
   } else {
     const empty=document.createElement('div'); empty.className='week-empty'; card.appendChild(empty);
@@ -65,28 +78,37 @@ async function renderWeeks(){
   if(!PortfolioCloud.isConfigured()) return;
   try{
     const all=await PortfolioDB.listAll();
-    const map=new Map(all.filter(a=>a.course===activeCourse && a.unit===activeUnit).map(a=>[a.week,a]));
+    const map=new Map(all.filter(a=>a.status==='published' && a.course===activeCourse && a.unit===activeUnit).map(a=>[a.week,a]));
     grid.innerHTML='';
     for(let week=1;week<=4;week++) grid.appendChild(makeWeekCard(week,map.get(week)||null));
-  }catch(err){
-    console.error(err);
-  }
+  }catch(err){ console.error(err); }
 }
 
-function projectFileActions(a){
-  if(!a?.fileUrl) return '';
-  const name = escapeHtml(a.fileName || 'archivo');
-  const url = escapeHtml(a.fileUrl);
-  return `<div class="project-actions"><a class="project-open" href="${url}" target="_blank" rel="noopener">Ver actividad ↗</a><a class="project-download" href="${url}?download=${encodeURIComponent(a.fileName || 'archivo')}" target="_blank" rel="noopener">Descargar ↓</a></div>`;
+function projectFileList(a){
+  const files=publishedFiles(a);
+  if(!files.length) return '';
+  return `<div class="project-files-list">${files.map((f,index)=>{
+    const url=escapeHtml(f.url);
+    const label=escapeHtml(f.label||f.name||`Archivo ${index+1}`);
+    const note=f.note?`<small>${escapeHtml(f.note)}</small>`:'';
+    return `<article class="project-file-row">
+      <span class="project-file-order">${String(index+1).padStart(2,'0')}</span>
+      <span class="project-file-kind">${fileType(f.name)}</span>
+      <div class="project-file-info"><strong title="${label}">${label}</strong><span>${escapeHtml(f.category||'Archivo')}</span>${note}</div>
+      <div class="project-file-buttons"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>
+    </article>`;
+  }).join('')}</div>`;
 }
 
 function makeProjectCard(a,index=0){
   const card=document.createElement('article');
-  card.className='project-card';
+  card.className='project-card project-card-multi';
   card.style.setProperty('--project-accent',courses[a.course]?.accent||'#44d7ff');
   card.style.animationDelay=`${Math.min(index*55,330)}ms`;
   const courseLabel=courses[a.course]?.short||a.course;
-  const preview=(a.fileUrl && isImage(a.fileName)) ? `<a href="${escapeHtml(a.fileUrl)}" target="_blank" rel="noopener" class="project-preview"><img src="${escapeHtml(a.fileUrl)}" alt="Vista previa de ${escapeHtml(a.fileName)}" loading="lazy"></a>` : '';
+  const files=publishedFiles(a);
+  const firstImage=files.find(f=>isImage(f.name));
+  const preview=firstImage ? `<a href="${escapeHtml(firstImage.url)}" target="_blank" rel="noopener" class="project-preview"><img src="${escapeHtml(firstImage.url)}" alt="Vista previa de ${escapeHtml(firstImage.label||firstImage.name)}" loading="lazy"></a>` : '';
   card.innerHTML=`
     <div class="project-card-top">
       <span class="project-course">${escapeHtml(courseLabel)}</span>
@@ -94,10 +116,10 @@ function makeProjectCard(a,index=0){
     </div>
     ${preview}
     <div class="project-card-body">
-      <h3>${escapeHtml(courseLabel)} · Unidad ${a.unit} · Semana ${a.week}</h3>
+      <h3>${escapeHtml(a.title || `${courseLabel} · Unidad ${a.unit} · Semana ${a.week}`)}</h3>
       <p>${escapeHtml(a.description || 'Actividad publicada.')}</p>
-      ${a.fileName ? `<div class="project-file"><span>${fileType(a.fileName)}</span><strong title="${escapeHtml(a.fileName)}">${escapeHtml(a.fileName)}</strong></div>` : ''}
-      ${projectFileActions(a)}
+      <div class="project-files-heading"><span>${files.length}</span> archivo(s) publicados</div>
+      ${projectFileList(a)}
     </div>`;
   return card;
 }
@@ -113,7 +135,7 @@ async function renderProjects(){
   grid.innerHTML='<div class="projects-loading">Cargando actividades publicadas…</div>';
   try{
     let all=await PortfolioDB.listAll();
-    all=all.filter(a=>a.fileUrl || a.description);
+    all=all.filter(a=>a.status==='published' && (publishedFiles(a).length || a.description || a.title));
     const filtered=projectFilter==='all' ? all : all.filter(a=>a.course===projectFilter);
     $('#projectsCount').textContent=filtered.length;
     grid.innerHTML='';
@@ -162,44 +184,26 @@ $('#loginForm').addEventListener('submit',async(e)=>{
     $('#loginMessage').textContent='Acceso correcto. Abriendo tu panel…';
     $('#loginMessage').classList.add('success');
     setTimeout(()=>location.href='admin.html',350);
-  }catch(err){
-    $('#loginMessage').textContent=err.message || 'No se pudo iniciar sesión.';
-  }finally{
-    button.disabled=false; button.innerHTML='Entrar al panel <span>→</span>';
-  }
+  }catch(err){ $('#loginMessage').textContent=err.message || 'No se pudo iniciar sesión.'; }
+  finally{ button.disabled=false; button.innerHTML='Entrar al panel <span>→</span>'; }
 });
 
 $('#forgotPasswordBtn').addEventListener('click',async()=>{
-  const btn=$('#forgotPasswordBtn');
-  const msg=$('#loginMessage');
-  if(!PortfolioCloud.isConfigured()){
-    msg.className='form-message';
-    msg.textContent='Primero configura Supabase en supabase-config.js.';
-    return;
-  }
+  const btn=$('#forgotPasswordBtn'); const msg=$('#loginMessage');
+  if(!PortfolioCloud.isConfigured()){msg.className='form-message';msg.textContent='Primero configura Supabase en supabase-config.js.';return}
   try{
-    btn.disabled=true;
-    btn.textContent='Enviando enlace…';
-    msg.className='form-message';
-    msg.textContent='Solicitando un enlace seguro para cambiar tu contraseña…';
+    btn.disabled=true;btn.textContent='Enviando enlace…';msg.className='form-message';msg.textContent='Solicitando un enlace seguro para cambiar tu contraseña…';
     await PortfolioCloud.sendPasswordReset();
-    msg.className='form-message success';
-    msg.textContent='Listo. Revisa tu correo y abre el enlace para crear una nueva contraseña.';
-  }catch(err){
-    console.error(err);
-    msg.className='form-message';
-    msg.textContent=err.message||'No se pudo enviar el correo de recuperación.';
-  }finally{
-    btn.disabled=false;
-    btn.innerHTML='¿No recuerdas tu contraseña? <strong>Cambiar contraseña</strong>';
-  }
+    msg.className='form-message success';msg.textContent='Listo. Revisa tu correo y abre el enlace para crear una nueva contraseña.';
+  }catch(err){console.error(err);msg.className='form-message';msg.textContent=err.message||'No se pudo enviar el correo de recuperación.'}
+  finally{btn.disabled=false;btn.innerHTML='¿No recuerdas tu contraseña? <strong>Cambiar contraseña</strong>'}
 });
 
 $('#showPassword').addEventListener('click',()=>{const inp=$('#loginPassword');const show=inp.type==='password';inp.type=show?'text':'password';$('#showPassword').textContent=show?'Ocultar':'Ver'});
 $$('[data-close="loginModal"]').forEach(el=>el.addEventListener('click',closeModal));
 document.addEventListener('keydown',e=>{if(e.key==='Escape') closeModal()});
 $$('.course-window').forEach(b=>b.addEventListener('click',()=>setCourse(b.dataset.course)));
-$$('.project-filter').forEach(b=>b.addEventListener('click',async()=>{projectFilter=b.dataset.filter;$$('.project-filter').forEach(x=>x.classList.toggle('active',x===b));await renderProjects();}));
+$$('.project-filter').forEach(b=>b.addEventListener('click',async()=>{projectFilter=b.dataset.filter;$$('.project-filter').forEach(x=>x.classList.toggle('active',x===b));await renderProjects()}));
 $('#menuButton').addEventListener('click',()=>$('#mobileMenu').classList.toggle('open'));
 $$('#mobileMenu a').forEach(a=>a.addEventListener('click',()=>$('#mobileMenu').classList.remove('open')));
 

@@ -44,22 +44,48 @@
         <div class="admin-weeks" id="adminWeeks"></div>
       </div>
 
-      <aside class="editor-panel">
-        <div class="editor-head"><p class="eyebrow">EDITOR</p><h2 id="editorTitle">Unidad 1 · Semana 1</h2><p>Escribe la descripción y adjunta el archivo de la actividad.</p></div>
+      <aside class="editor-panel multi-editor">
+        <div class="editor-head">
+          <div class="editor-head-row"><div><p class="eyebrow">EDITOR Y ORGANIZADOR</p><h2 id="editorTitle">Unidad 1 · Semana 1</h2></div><span class="editor-status empty" id="editorStatus">Vacía</span></div>
+          <p>Prepara el contenido, ordena todos los archivos y revisa la vista previa antes de publicarlo.</p>
+        </div>
         <form id="activityForm">
+          <label>Título de la actividad
+            <input class="text-input" id="activityTitle" type="text" maxlength="120" placeholder="Ej. Práctica de arreglos paralelos" />
+          </label>
           <label>Descripción
-            <textarea id="description" rows="7" placeholder="Escribe la descripción de esta actividad..."></textarea>
+            <textarea id="description" rows="5" maxlength="1800" placeholder="Describe brevemente qué se realizó en esta actividad..."></textarea>
           </label>
+
           <label class="upload-zone" id="uploadZone">
-            <input type="file" id="fileInput" />
-            <span class="upload-icon">↑</span>
-            <strong>Seleccionar archivo</strong>
-            <small>Admite cualquier tipo de archivo.</small>
-            <span class="selected-file" id="selectedFile">Ningún archivo seleccionado</span>
+            <input type="file" id="fileInput" multiple />
+            <span class="upload-icon">＋</span>
+            <strong>Agregar uno o varios archivos</strong>
+            <small>Puedes seleccionar varios archivos de cualquier tipo a la vez.</small>
+            <span class="selected-file"><b id="fileCount">0</b> archivo(s) organizados</span>
           </label>
-          <div class="current-file" id="currentFile"></div>
+
+          <section class="file-organizer-section">
+            <div class="subsection-head"><div><p class="eyebrow">ORDEN DE PUBLICACIÓN</p><h3>Organiza tus archivos</h3></div><span>↑ ↓ para ordenar</span></div>
+            <div class="file-organizer" id="fileOrganizer"></div>
+          </section>
+
+          <section class="publish-preview">
+            <div class="subsection-head"><div><p class="eyebrow">VISTA PREVIA</p><h3>Así se mostrará la actividad</h3></div><span id="previewPosition">Algoritmos · U1 · S1</span></div>
+            <article class="preview-card">
+              <h4 id="previewTitle">Título de la actividad</h4>
+              <p id="previewDescription">La descripción aparecerá aquí cuando la escribas.</p>
+              <div class="preview-files" id="previewFiles"></div>
+            </article>
+          </section>
+
           <p class="form-message" id="formMessage"></p>
-          <div class="form-actions"><button class="primary-btn" type="submit">Guardar actividad</button><button class="danger-btn" type="button" id="deleteButton">Eliminar</button></div>
+          <div class="publish-actions">
+            <button class="draft-btn" type="button" id="draftButton">Guardar borrador</button>
+            <button class="primary-btn" type="submit">Publicar actividad</button>
+            <button class="danger-btn" type="button" id="deleteButton">Eliminar</button>
+          </div>
+          <p class="publish-note">Los borradores no aparecen en la pantalla principal. Solo se hacen visibles al pulsar <strong>Publicar actividad</strong>.</p>
         </form>
       </aside>
     </section>

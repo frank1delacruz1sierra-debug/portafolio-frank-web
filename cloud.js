@@ -35,18 +35,56 @@ const PortfolioCloud = (() => {
     return `${course}-u${unit}-s${week}`;
   }
 
+  function legacyFiles(row) {
+    if (!row?.file_url) return [];
+    return [{
+      id: row.file_path || `legacy-${row.id}`,
+      name: row.file_name || 'archivo',
+      type: row.file_type || '',
+      path: row.file_path || '',
+      url: row.file_url || '',
+      label: row.file_name || 'Archivo',
+      category: 'Archivo',
+      note: '',
+      order: 0
+    }];
+  }
+
+  function normalizeFiles(row) {
+    const source = Array.isArray(row?.files) && row.files.length ? row.files : legacyFiles(row);
+    return source
+      .map((item, index) => ({
+        id: item.id || item.path || `file-${index}`,
+        name: item.name || item.fileName || 'archivo',
+        type: item.type || item.fileType || '',
+        path: item.path || item.filePath || '',
+        url: item.url || item.fileUrl || '',
+        label: item.label || item.name || item.fileName || `Archivo ${index + 1}`,
+        category: item.category || 'Archivo',
+        note: item.note || '',
+        order: Number.isFinite(Number(item.order)) ? Number(item.order) : index
+      }))
+      .sort((a, b) => a.order - b.order)
+      .map((item, index) => ({ ...item, order: index }));
+  }
+
   function normalize(row) {
     if (!row) return null;
+    const files = normalizeFiles(row);
+    const first = files[0] || null;
     return {
       id: row.id,
       course: row.course,
       unit: row.unit_number,
       week: row.week_number,
+      title: row.title || '',
       description: row.description || '',
-      fileName: row.file_name || '',
-      fileType: row.file_type || '',
-      filePath: row.file_path || '',
-      fileUrl: row.file_url || '',
+      status: row.status || 'published',
+      files,
+      fileName: first?.name || row.file_name || '',
+      fileType: first?.type || row.file_type || '',
+      filePath: first?.path || row.file_path || '',
+      fileUrl: first?.url || row.file_url || '',
       updatedAt: row.updated_at || ''
     };
   }
@@ -97,56 +135,85 @@ const PortfolioCloud = (() => {
     return { path, publicUrl: data.publicUrl };
   }
 
-  async function removeStorage(path) {
-    if (!path) return;
-    const { error } = await client().storage.from(cfg().bucket).remove([path]);
-    if (error) console.warn('No se pudo eliminar el archivo anterior de Storage:', error.message);
+  async function removeStorage(paths) {
+    const clean = [...new Set((Array.isArray(paths) ? paths : [paths]).filter(Boolean))];
+    if (!clean.length) return;
+    const { error } = await client().storage.from(cfg().bucket).remove(clean);
+    if (error) console.warn('No se pudieron eliminar algunos archivos de Storage:', error.message);
   }
 
-  async function save({ course, unit, week, description, file, currentActivity }) {
-    let newUpload = null;
-    let fileName = currentActivity?.fileName || '';
-    let fileType = currentActivity?.fileType || '';
-    let filePath = currentActivity?.filePath || '';
-    let fileUrl = currentActivity?.fileUrl || '';
+  async function save({ course, unit, week, title, description, status, files, currentActivity }) {
+    const uploadedPaths = [];
+    const finalFiles = [];
 
-    if (file) {
-      newUpload = await uploadFile(course, unit, week, file);
-      fileName = file.name;
-      fileType = file.type || '';
-      filePath = newUpload.path;
-      fileUrl = newUpload.publicUrl;
-    }
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const item = files[i];
+        let stored = null;
+        if (item.file instanceof File) {
+          const upload = await uploadFile(course, unit, week, item.file);
+          uploadedPaths.push(upload.path);
+          stored = {
+            id: upload.path,
+            name: item.file.name,
+            type: item.file.type || '',
+            path: upload.path,
+            url: upload.publicUrl
+          };
+        } else {
+          stored = {
+            id: item.id || item.path,
+            name: item.name,
+            type: item.type || '',
+            path: item.path || '',
+            url: item.url || ''
+          };
+        }
 
-    const row = {
-      id: id(course, unit, week),
-      course,
-      unit_number: unit,
-      week_number: week,
-      description,
-      file_name: fileName || null,
-      file_type: fileType || null,
-      file_path: filePath || null,
-      file_url: fileUrl || null,
-      updated_at: new Date().toISOString()
-    };
+        finalFiles.push({
+          ...stored,
+          label: String(item.label || stored.name || `Archivo ${i + 1}`).trim(),
+          category: String(item.category || 'Archivo').trim(),
+          note: String(item.note || '').trim(),
+          order: i
+        });
+      }
 
-    const { data, error } = await client()
-      .from('activities')
-      .upsert(row, { onConflict: 'id' })
-      .select()
-      .single();
+      const first = finalFiles[0] || null;
+      const row = {
+        id: id(course, unit, week),
+        course,
+        unit_number: unit,
+        week_number: week,
+        title: String(title || '').trim(),
+        description: String(description || '').trim(),
+        status: status === 'draft' ? 'draft' : 'published',
+        files: finalFiles,
+        file_name: first?.name || null,
+        file_type: first?.type || null,
+        file_path: first?.path || null,
+        file_url: first?.url || null,
+        updated_at: new Date().toISOString()
+      };
 
-    if (error) {
-      if (newUpload?.path) await removeStorage(newUpload.path);
+      const { data, error } = await client()
+        .from('activities')
+        .upsert(row, { onConflict: 'id' })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const oldPaths = (currentActivity?.files || []).map(f => f.path).filter(Boolean);
+      const newPaths = finalFiles.map(f => f.path).filter(Boolean);
+      const removedPaths = oldPaths.filter(path => !newPaths.includes(path));
+      if (removedPaths.length) await removeStorage(removedPaths);
+
+      return normalize(data);
+    } catch (error) {
+      if (uploadedPaths.length) await removeStorage(uploadedPaths);
       throw error;
     }
-
-    if (newUpload && currentActivity?.filePath && currentActivity.filePath !== newUpload.path) {
-      await removeStorage(currentActivity.filePath);
-    }
-
-    return normalize(data);
   }
 
   async function remove(course, unit, week) {
@@ -156,7 +223,8 @@ const PortfolioCloud = (() => {
       .delete()
       .eq('id', id(course, unit, week));
     if (error) throw error;
-    if (current?.filePath) await removeStorage(current.filePath);
+    const paths = (current?.files || []).map(f => f.path).filter(Boolean);
+    if (paths.length) await removeStorage(paths);
   }
 
   async function signIn(username, password) {
@@ -177,7 +245,12 @@ const PortfolioCloud = (() => {
     requireConfig();
     const redirectTo = new URL('reset.html', window.location.href).href;
     const { data, error } = await client().auth.resetPasswordForEmail(cfg().adminEmail, { redirectTo });
-    if (error) throw new Error(error.message || 'No se pudo enviar el correo de recuperación.');
+    if (error) {
+      if (/rate limit/i.test(error.message || '')) {
+        throw new Error('Se alcanzó el límite temporal de correos de Supabase. Espera un poco antes de intentarlo nuevamente.');
+      }
+      throw new Error(error.message || 'No se pudo enviar el correo de recuperación.');
+    }
     return data;
   }
 

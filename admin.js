@@ -1,6 +1,30 @@
-const $ = s => document.querySelector(s); const $$ = s => [...document.querySelectorAll(s)];
-const courses={algoritmos:{short:'Algoritmos',full:'Algoritmos y bases de datos'},aplicaciones:{short:'Aplicaciones',full:'Desarrollo de aplicaciones'}};
-let course='algoritmos', unit=1, week=1, currentActivity=null;
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const courses = {
+  algoritmos: { short: 'Algoritmos', full: 'Algoritmos y bases de datos' },
+  aplicaciones: { short: 'Aplicaciones', full: 'Desarrollo de aplicaciones' }
+};
+const categories = ['Documento', 'Código', 'Imagen', 'Presentación', 'Hoja de cálculo', 'Comprimido', 'Enlace/otro'];
+let course = 'algoritmos', unit = 1, week = 1, currentActivity = null, stagedFiles = [];
+
+function uid() { return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+function escapeHtml(v=''){return String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
+function fileCode(name=''){
+  const ext=name.split('.').pop()?.toLowerCase()||'';
+  if(['png','jpg','jpeg','gif','webp','svg'].includes(ext)) return 'IMG';
+  if(ext==='pdf') return 'PDF';
+  if(['doc','docx','odt','txt'].includes(ext)) return 'DOC';
+  if(['xls','xlsx','csv'].includes(ext)) return 'XLS';
+  if(['ppt','pptx'].includes(ext)) return 'PPT';
+  if(['zip','rar','7z'].includes(ext)) return 'ZIP';
+  if(['java','js','html','css','php','py','sql','jsp','json','xml','c','cpp','cs'].includes(ext)) return 'CODE';
+  return 'FILE';
+}
+function inferCategory(name=''){
+  const code=fileCode(name);
+  return ({IMG:'Imagen',PDF:'Documento',DOC:'Documento',XLS:'Hoja de cálculo',PPT:'Presentación',ZIP:'Comprimido',CODE:'Código'})[code]||'Enlace/otro';
+}
+function baseName(name='archivo') { return name.replace(/\.[^.]+$/, '').replace(/[-_]+/g,' ').trim() || 'Archivo'; }
 
 async function guard(){
   if(!PortfolioCloud.isConfigured()){
@@ -13,36 +37,116 @@ async function guard(){
   return true;
 }
 
-function renderUnits(){const h=$('#adminUnits');h.innerHTML='';for(let i=1;i<=4;i++){const b=document.createElement('button');b.className=`admin-unit ${i===unit?'active':''}`;b.textContent=`Unidad ${i}`;b.onclick=()=>{unit=i;week=1;renderAll()};h.appendChild(b)}}
+function renderUnits(){
+  const h=$('#adminUnits'); h.innerHTML='';
+  for(let i=1;i<=4;i++){
+    const b=document.createElement('button');
+    b.className=`admin-unit ${i===unit?'active':''}`;
+    b.textContent=`Unidad ${i}`;
+    b.onclick=()=>{unit=i;week=1;renderAll()};
+    h.appendChild(b);
+  }
+}
 
 async function renderWeeks(){
-  const h=$('#adminWeeks');h.innerHTML='';
+  const h=$('#adminWeeks'); h.innerHTML='';
   let all=[];
   try{ all=await PortfolioDB.listAll(); }catch(err){ console.error(err); }
   for(let i=1;i<=4;i++){
     const a=all.find(x=>x.course===course && x.unit===unit && x.week===i);
+    const state = !a ? 'Vacía' : a.status==='draft' ? 'Borrador' : 'Publicada';
     const b=document.createElement('button');
     b.className=`admin-week ${i===week?'active':''}`;
-    b.innerHTML=`<div class="admin-week-top"><strong>Semana ${i}</strong><span class="week-state ${a?'published':''}">${a?'Publicada':'Vacía'}</span></div><p>${a?(a.description||'Actividad guardada').slice(0,75):'Selecciona esta semana para agregar una actividad.'}</p>`;
-    b.onclick=()=>{week=i;renderAll()};h.appendChild(b);
+    b.innerHTML=`<div class="admin-week-top"><strong>Semana ${i}</strong><span class="week-state ${a?.status==='published'?'published':a?.status==='draft'?'draft':''}">${state}</span></div><p>${a?(a.title||a.description||'Actividad guardada').slice(0,75):'Selecciona esta semana para preparar una actividad.'}</p>`;
+    b.onclick=()=>{week=i;renderAll()};
+    h.appendChild(b);
   }
+}
+
+function cloneExistingFiles(files=[]){
+  return files.map((f,index)=>({
+    key: uid(),
+    existing: true,
+    id: f.id,
+    name: f.name,
+    type: f.type,
+    path: f.path,
+    url: f.url,
+    label: f.label || f.name,
+    category: f.category || inferCategory(f.name),
+    note: f.note || '',
+    order:index
+  }));
+}
+
+function renderFileOrganizer(){
+  const host=$('#fileOrganizer');
+  $('#fileCount').textContent=stagedFiles.length;
+  if(!stagedFiles.length){
+    host.innerHTML='<div class="organizer-empty"><strong>Aún no agregaste archivos</strong><span>Selecciona uno o varios archivos y luego ordénalos aquí antes de publicar.</span></div>';
+    renderPreview();
+    return;
+  }
+  host.innerHTML='';
+  stagedFiles.forEach((item,index)=>{
+    const card=document.createElement('article');
+    card.className='organizer-item';
+    card.dataset.key=item.key;
+    card.innerHTML=`
+      <div class="organizer-index">${String(index+1).padStart(2,'0')}</div>
+      <div class="organizer-main">
+        <div class="organizer-file-head">
+          <span class="organizer-type">${fileCode(item.name)}</span>
+          <div><strong title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</strong><small>${item.existing?'Archivo ya guardado':'Archivo nuevo'}</small></div>
+        </div>
+        <div class="organizer-fields">
+          <label>Nombre visible<input data-field="label" value="${escapeHtml(item.label)}" placeholder="Ej. Informe final"></label>
+          <label>Tipo<select data-field="category">${categories.map(c=>`<option ${c===item.category?'selected':''}>${c}</option>`).join('')}</select></label>
+          <label class="organizer-note">Nota opcional<input data-field="note" value="${escapeHtml(item.note)}" placeholder="Ej. Código fuente del ejercicio"></label>
+        </div>
+      </div>
+      <div class="organizer-controls">
+        <button type="button" data-action="up" title="Subir" ${index===0?'disabled':''}>↑</button>
+        <button type="button" data-action="down" title="Bajar" ${index===stagedFiles.length-1?'disabled':''}>↓</button>
+        ${item.url?`<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" title="Ver archivo">↗</a>`:''}
+        <button type="button" data-action="remove" class="remove-file" title="Quitar">×</button>
+      </div>`;
+    host.appendChild(card);
+  });
+  renderPreview();
+}
+
+function previewFile(item,index){
+  return `<div class="preview-file"><span>${String(index+1).padStart(2,'0')}</span><div><strong>${escapeHtml(item.label||item.name)}</strong><small>${escapeHtml(item.category||'Archivo')}${item.note?` · ${escapeHtml(item.note)}`:''}</small></div></div>`;
+}
+
+function renderPreview(){
+  const title=$('#activityTitle')?.value.trim()||'Título de la actividad';
+  const description=$('#description')?.value.trim()||'La descripción aparecerá aquí cuando la escribas.';
+  $('#previewTitle').textContent=title;
+  $('#previewDescription').textContent=description;
+  $('#previewPosition').textContent=`${courses[course].short} · U${unit} · S${week}`;
+  $('#previewFiles').innerHTML=stagedFiles.length?stagedFiles.map(previewFile).join(''):'<span class="preview-empty">Sin archivos organizados todavía.</span>';
 }
 
 async function loadEditor(){
   currentActivity=await PortfolioDB.get(course,unit,week);
   $('#editorTitle').textContent=`Unidad ${unit} · Semana ${week}`;
+  $('#activityTitle').value=currentActivity?.title||'';
   $('#description').value=currentActivity?.description||'';
   $('#fileInput').value='';
-  $('#selectedFile').textContent='Ningún archivo seleccionado';
-  $('#currentFile').innerHTML=currentActivity?.fileUrl
-    ? `Archivo actual: <a href="${currentActivity.fileUrl}" target="_blank" rel="noopener">${currentActivity.fileName}</a>`
-    : 'No hay archivo publicado.';
-  $('#formMessage').textContent='';$('#formMessage').className='form-message';
+  stagedFiles=cloneExistingFiles(currentActivity?.files||[]);
+  const state=!currentActivity?'Vacía':currentActivity.status==='draft'?'Borrador':'Publicada';
+  $('#editorStatus').textContent=state;
+  $('#editorStatus').className=`editor-status ${currentActivity?.status||'empty'}`;
+  $('#formMessage').textContent='';
+  $('#formMessage').className='form-message';
+  renderFileOrganizer();
 }
 
 async function updateStats(){
   const all=await PortfolioDB.listAll();
-  const n=all.filter(a=>a.course===course).length;
+  const n=all.filter(a=>a.course===course && a.status==='published').length;
   $('#statPublished').textContent=n;
   $('#statCourse').textContent=courses[course].short;
   $('#statCourseFull').textContent=courses[course].full;
@@ -66,58 +170,114 @@ async function renderAll(){
 }
 
 $$('.side-link').forEach(b=>b.addEventListener('click',()=>{course=b.dataset.course;unit=1;week=1;renderAll()}));
-$('#fileInput').addEventListener('change',()=>{$('#selectedFile').textContent=$('#fileInput').files[0]?.name||'Ningún archivo seleccionado'});
+$('#activityTitle').addEventListener('input',renderPreview);
+$('#description').addEventListener('input',renderPreview);
 
-$('#activityForm').addEventListener('submit',async e=>{
-  e.preventDefault();
+$('#fileInput').addEventListener('change',e=>{
+  const selected=[...e.target.files];
+  selected.forEach(file=>stagedFiles.push({
+    key:uid(), existing:false, file, name:file.name, type:file.type||'', path:'', url:'',
+    label:baseName(file.name), category:inferCategory(file.name), note:'', order:stagedFiles.length
+  }));
+  e.target.value='';
+  renderFileOrganizer();
+});
+
+$('#fileOrganizer').addEventListener('input',e=>{
+  const card=e.target.closest('.organizer-item');
+  if(!card) return;
+  const item=stagedFiles.find(x=>x.key===card.dataset.key);
+  if(!item) return;
+  const field=e.target.dataset.field;
+  if(field) item[field]=e.target.value;
+  renderPreview();
+});
+$('#fileOrganizer').addEventListener('change',e=>{
+  const card=e.target.closest('.organizer-item');
+  if(!card) return;
+  const item=stagedFiles.find(x=>x.key===card.dataset.key);
+  if(item && e.target.dataset.field) item[e.target.dataset.field]=e.target.value;
+  renderPreview();
+});
+$('#fileOrganizer').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-action]');
+  if(!btn) return;
+  const card=btn.closest('.organizer-item');
+  const index=stagedFiles.findIndex(x=>x.key===card.dataset.key);
+  if(index<0) return;
+  if(btn.dataset.action==='remove') stagedFiles.splice(index,1);
+  if(btn.dataset.action==='up' && index>0) [stagedFiles[index-1],stagedFiles[index]]=[stagedFiles[index],stagedFiles[index-1]];
+  if(btn.dataset.action==='down' && index<stagedFiles.length-1) [stagedFiles[index+1],stagedFiles[index]]=[stagedFiles[index],stagedFiles[index+1]];
+  renderFileOrganizer();
+});
+
+async function saveActivity(status){
+  const title=$('#activityTitle').value.trim();
   const description=$('#description').value.trim();
-  const file=$('#fileInput').files[0];
-  const submit=e.currentTarget.querySelector('button[type="submit"]');
+  const msg=$('#formMessage');
+  const buttons=$$('.publish-actions button');
+  msg.className='form-message';
 
-  if(!description){$('#formMessage').textContent='Escribe una descripción para la actividad.';return}
-  if(!file&&!currentActivity?.fileUrl){$('#formMessage').textContent='Selecciona un archivo para publicar.';return}
+  if(status==='published'){
+    if(!title){msg.textContent='Escribe un título para la actividad antes de publicarla.';return}
+    if(!description){msg.textContent='Escribe una descripción antes de publicar.';return}
+    if(!stagedFiles.length){msg.textContent='Agrega al menos un archivo antes de publicar.';return}
+  } else if(!title && !description && !stagedFiles.length){
+    msg.textContent='Agrega algún contenido antes de guardar el borrador.'; return;
+  }
 
   try{
-    submit.disabled=true; submit.textContent='Publicando…';
-    $('#formMessage').className='form-message';
-    $('#formMessage').textContent='Subiendo archivo y guardando la actividad…';
-
-    const saved=await PortfolioDB.save({course,unit,week,description,file,currentActivity});
+    buttons.forEach(b=>b.disabled=true);
+    msg.textContent=status==='published'?'Subiendo archivos y publicando…':'Guardando borrador y archivos…';
+    const saved=await PortfolioDB.save({
+      course,unit,week,title,description,status,
+      files:stagedFiles,
+      currentActivity
+    });
     currentActivity=saved;
-    $('#formMessage').className='form-message success';
-    $('#formMessage').textContent='Actividad publicada. Ya será visible para los visitantes del portafolio.';
-    $('#currentFile').innerHTML=`Archivo actual: <a href="${saved.fileUrl}" target="_blank" rel="noopener">${saved.fileName}</a>`;
-    $('#fileInput').value='';
-    $('#selectedFile').textContent='Ningún archivo seleccionado';
-    await renderWeeks(); await updateStats();
+    stagedFiles=cloneExistingFiles(saved.files);
+    msg.className='form-message success';
+    msg.textContent=status==='published'
+      ? `Actividad publicada con ${saved.files.length} archivo(s). Ya es visible en el portafolio.`
+      : `Borrador guardado con ${saved.files.length} archivo(s). Todavía no aparece en la página pública.`;
+    $('#editorStatus').textContent=status==='published'?'Publicada':'Borrador';
+    $('#editorStatus').className=`editor-status ${status}`;
+    renderFileOrganizer();
+    await renderWeeks();
+    await updateStats();
   }catch(err){
     console.error(err);
-    $('#formMessage').className='form-message';
-    $('#formMessage').textContent=`No se pudo publicar: ${err.message}`;
+    msg.className='form-message';
+    msg.textContent=`No se pudo guardar: ${err.message}`;
   }finally{
-    submit.disabled=false; submit.textContent='Guardar actividad';
+    buttons.forEach(b=>b.disabled=false);
   }
-});
+}
+
+$('#activityForm').addEventListener('submit',async e=>{e.preventDefault();await saveActivity('published')});
+$('#draftButton').addEventListener('click',()=>saveActivity('draft'));
 
 $('#deleteButton').addEventListener('click',async()=>{
   const a=await PortfolioDB.get(course,unit,week);
-  if(!a){$('#formMessage').className='form-message';$('#formMessage').textContent='Esta semana no tiene una actividad publicada.';return}
-  if(!confirm(`¿Eliminar la actividad de la semana ${week}?`))return;
+  if(!a){$('#formMessage').className='form-message';$('#formMessage').textContent='Esta semana no tiene una actividad guardada.';return}
+  if(!confirm(`¿Eliminar completamente la actividad de la semana ${week} y todos sus archivos?`))return;
   try{
     await PortfolioDB.remove(course,unit,week);
+    $('#activityTitle').value='';
     $('#description').value='';
-    $('#currentFile').textContent='No hay archivo publicado.';
-    $('#formMessage').className='form-message success';
-    $('#formMessage').textContent='Actividad eliminada de la base de datos y del almacenamiento.';
+    stagedFiles=[];
     currentActivity=null;
+    $('#editorStatus').textContent='Vacía';
+    $('#editorStatus').className='editor-status empty';
+    $('#formMessage').className='form-message success';
+    $('#formMessage').textContent='Actividad y archivos eliminados.';
+    renderFileOrganizer();
     await renderWeeks();await updateStats();
   }catch(err){
     $('#formMessage').className='form-message';
     $('#formMessage').textContent=`No se pudo eliminar: ${err.message}`;
   }
 });
-
-
 
 // Cambio de contraseña
 const passwordModal=$('#passwordModal');
@@ -156,23 +316,16 @@ $('#passwordForm').addEventListener('submit',async e=>{
   msg.className='password-message';
   if(next!==confirm){msg.textContent='Las nuevas contraseñas no coinciden.';return}
   try{
-    submit.disabled=true;
-    submit.textContent='Actualizando…';
+    submit.disabled=true;submit.textContent='Actualizando…';
     msg.textContent='Verificando y actualizando tu contraseña…';
     await PortfolioCloud.changePassword(current,next);
     msg.className='password-message success';
     msg.textContent='Contraseña actualizada correctamente.';
     $('#passwordForm').reset();
     setTimeout(closePasswordModal,1200);
-  }catch(err){
-    console.error(err);
-    msg.textContent=err.message||'No se pudo actualizar la contraseña.';
-  }finally{
-    submit.disabled=false;
-    submit.textContent='Actualizar contraseña';
-  }
+  }catch(err){console.error(err);msg.textContent=err.message||'No se pudo actualizar la contraseña.'}
+  finally{submit.disabled=false;submit.textContent='Actualizar contraseña'}
 });
 
 $('#logoutButton').addEventListener('click',async()=>{await PortfolioCloud.signOut();location.href='index.html'});
-
 (async()=>{ if(await guard()) await renderAll(); })();
