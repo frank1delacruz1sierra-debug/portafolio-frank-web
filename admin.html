@@ -13,12 +13,16 @@
   <div class="admin-glow glow-one"></div><div class="admin-glow glow-two"></div>
   <aside class="sidebar">
     <a href="index.html" class="admin-brand"><span>F</span><strong>FRANK.DEV</strong></a>
-    <div class="profile-mini"><img src="assets/frank-perfil.webp" alt="Frank"><div><strong>Frank</strong><small>Administrador</small></div></div>
+    <div class="profile-mini"><img src="frank-perfil.webp" alt="Frank"><div><strong>Frank</strong><small>Administrador</small></div></div>
     <nav class="side-nav">
       <button class="side-link active" data-course="algoritmos"><span>⌘</span><div><strong>Algoritmos</strong><small>Algoritmos y bases de datos</small></div></button>
       <button class="side-link" data-course="aplicaciones"><span>◇</span><div><strong>Aplicaciones</strong><small>Desarrollo de aplicaciones</small></div></button>
     </nav>
-    <div class="sidebar-bottom"><a href="index.html">← Ver portafolio</a><button id="logoutButton">Cerrar sesión</button></div>
+    <div class="sidebar-bottom">
+      <a href="index.html">← Ver portafolio</a>
+      <button id="passwordButton" class="password-button">Cambiar contraseña</button>
+      <button id="logoutButton">Cerrar sesión</button>
+    </div>
   </aside>
 
   <main class="dashboard">
@@ -60,6 +64,33 @@
       </aside>
     </section>
   </main>
+
+
+  <div class="password-modal" id="passwordModal" aria-hidden="true">
+    <div class="password-backdrop" data-close-password></div>
+    <section class="password-card" role="dialog" aria-modal="true" aria-labelledby="passwordTitle">
+      <button class="password-close" type="button" id="passwordClose" aria-label="Cerrar">×</button>
+      <p class="eyebrow">SEGURIDAD</p>
+      <h2 id="passwordTitle">Cambiar contraseña</h2>
+      <p class="password-help">Actualiza la contraseña de tu cuenta de administrador.</p>
+      <form id="passwordForm">
+        <label>Contraseña actual
+          <div class="password-field"><input id="currentPassword" type="password" autocomplete="current-password" required /><button type="button" class="toggle-pass" data-target="currentPassword">Ver</button></div>
+        </label>
+        <label>Nueva contraseña
+          <div class="password-field"><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required /><button type="button" class="toggle-pass" data-target="newPassword">Ver</button></div>
+        </label>
+        <label>Confirmar nueva contraseña
+          <div class="password-field"><input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" required /><button type="button" class="toggle-pass" data-target="confirmPassword">Ver</button></div>
+        </label>
+        <p class="password-message" id="passwordMessage"></p>
+        <div class="password-actions">
+          <button type="button" class="cancel-password" id="passwordCancel">Cancelar</button>
+          <button type="submit" class="primary-btn">Actualizar contraseña</button>
+        </div>
+      </form>
+    </section>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>

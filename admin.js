@@ -117,6 +117,62 @@ $('#deleteButton').addEventListener('click',async()=>{
   }
 });
 
+
+
+// Cambio de contraseña
+const passwordModal=$('#passwordModal');
+function openPasswordModal(){
+  passwordModal.classList.add('open');
+  passwordModal.setAttribute('aria-hidden','false');
+  $('#passwordMessage').textContent='';
+  $('#passwordMessage').className='password-message';
+  $('#passwordForm').reset();
+  setTimeout(()=>$('#currentPassword').focus(),80);
+}
+function closePasswordModal(){
+  passwordModal.classList.remove('open');
+  passwordModal.setAttribute('aria-hidden','true');
+  $('#passwordForm').reset();
+  $('#passwordMessage').textContent='';
+}
+$('#passwordButton').addEventListener('click',openPasswordModal);
+$('#passwordClose').addEventListener('click',closePasswordModal);
+$('#passwordCancel').addEventListener('click',closePasswordModal);
+passwordModal.querySelector('[data-close-password]').addEventListener('click',closePasswordModal);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&passwordModal.classList.contains('open'))closePasswordModal()});
+$$('.toggle-pass').forEach(btn=>btn.addEventListener('click',()=>{
+  const input=document.getElementById(btn.dataset.target);
+  const show=input.type==='password';
+  input.type=show?'text':'password';
+  btn.textContent=show?'Ocultar':'Ver';
+}));
+$('#passwordForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const current=$('#currentPassword').value;
+  const next=$('#newPassword').value;
+  const confirm=$('#confirmPassword').value;
+  const submit=e.currentTarget.querySelector('button[type="submit"]');
+  const msg=$('#passwordMessage');
+  msg.className='password-message';
+  if(next!==confirm){msg.textContent='Las nuevas contraseñas no coinciden.';return}
+  try{
+    submit.disabled=true;
+    submit.textContent='Actualizando…';
+    msg.textContent='Verificando y actualizando tu contraseña…';
+    await PortfolioCloud.changePassword(current,next);
+    msg.className='password-message success';
+    msg.textContent='Contraseña actualizada correctamente.';
+    $('#passwordForm').reset();
+    setTimeout(closePasswordModal,1200);
+  }catch(err){
+    console.error(err);
+    msg.textContent=err.message||'No se pudo actualizar la contraseña.';
+  }finally{
+    submit.disabled=false;
+    submit.textContent='Actualizar contraseña';
+  }
+});
+
 $('#logoutButton').addEventListener('click',async()=>{await PortfolioCloud.signOut();location.href='index.html'});
 
 (async()=>{ if(await guard()) await renderAll(); })();

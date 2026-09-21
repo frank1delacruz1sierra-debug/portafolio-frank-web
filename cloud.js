@@ -173,6 +173,25 @@ const PortfolioCloud = (() => {
     return data;
   }
 
+  async function changePassword(currentPassword, newPassword) {
+    requireConfig();
+    const current = String(currentPassword || '');
+    const next = String(newPassword || '');
+    if (!current) throw new Error('Escribe tu contraseña actual.');
+    if (next.length < 8) throw new Error('La nueva contraseña debe tener al menos 8 caracteres.');
+    if (current === next) throw new Error('La nueva contraseña debe ser diferente a la actual.');
+
+    const { error: verifyError } = await client().auth.signInWithPassword({
+      email: cfg().adminEmail,
+      password: current
+    });
+    if (verifyError) throw new Error('La contraseña actual no es correcta.');
+
+    const { data, error } = await client().auth.updateUser({ password: next });
+    if (error) throw new Error(error.message || 'No se pudo actualizar la contraseña.');
+    return data;
+  }
+
   async function signOut() {
     if (!isConfigured()) return;
     const { error } = await client().auth.signOut();
@@ -197,6 +216,7 @@ const PortfolioCloud = (() => {
     save,
     remove,
     signIn,
+    changePassword,
     signOut,
     session
   };
