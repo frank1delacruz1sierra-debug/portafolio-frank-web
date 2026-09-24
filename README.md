@@ -1,12 +1,7 @@
 # Portafolio Académico — Frank de la Cruz Sierra
 
+Portafolio web para organizar y publicar actividades de **Algoritmos** y **Desarrollo de Aplicaciones**.
+
+La página permite mostrar descripciones completas, varios archivos por actividad, enlaces compartidos como Figma y contenido organizado en pestañas deslizables por grupos de ejercicios.
+
 ![Portada del portafolio](portada-portafolio.png)
-
-Portafolio web académico para presentar actividades de **Algoritmos** y **Desarrollo de Aplicaciones**, organizadas por unidades y semanas. Cada actividad puede incluir descripción completa, varios archivos y enlaces externos organizados antes de publicarse.
-
-La web utiliza **GitHub Pages** para su publicación y **Supabase** para autenticación, datos y almacenamiento.
-
-
-## Enlaces externos
-
-Las actividades pueden incluir enlaces de Figma, GitHub, Google Drive, YouTube y otras páginas web, organizados junto con los archivos de la actividad.

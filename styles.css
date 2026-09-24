@@ -214,3 +214,112 @@ body{min-width:0}
 .public-link-card .file-icon,.project-link-row .project-file-kind{font-size:.56rem}
 @media(max-width:640px){.file-actions .copy-link-btn{width:100%}.project-file-buttons button{width:100%}}
 .public-link-card .file-icon,.project-link-row .project-file-kind{min-width:36px;width:auto;padding:0 7px}.public-link-card:has(.file-icon){border-color:rgba(162,89,255,.16)}
+
+
+.resource-tabs-shell{
+  min-width:0;
+  margin-top:10px
+}
+.resource-tabs-scroll{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  overscroll-behavior-inline:contain;
+  scroll-snap-type:x proximity;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(68,215,255,.35) transparent;
+  padding:2px 2px 9px
+}
+.resource-tabs-scroll::-webkit-scrollbar{height:5px}
+.resource-tabs-scroll::-webkit-scrollbar-thumb{background:rgba(68,215,255,.28);border-radius:999px}
+.resource-tab-button{
+  flex:0 0 auto;
+  scroll-snap-align:start;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(255,255,255,.035);
+  color:var(--muted);
+  padding:8px 12px;
+  font:700 .72rem 'Inter',sans-serif;
+  cursor:pointer;
+  transition:.2s ease;
+  white-space:nowrap
+}
+.resource-tab-button span{
+  display:inline-grid;
+  place-items:center;
+  min-width:20px;
+  height:20px;
+  margin-left:6px;
+  padding:0 5px;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  font-size:.63rem
+}
+.resource-tab-button:hover{color:#fff;background:rgba(255,255,255,.065)}
+.resource-tab-button.active{
+  color:#fff;
+  border-color:rgba(68,215,255,.32);
+  background:linear-gradient(135deg,rgba(68,215,255,.16),rgba(155,108,255,.14));
+  box-shadow:0 8px 24px rgba(28,139,255,.08)
+}
+.resource-tab-panels{min-width:0}
+.resource-tab-panel{display:none;gap:10px;animation:resourcePanelIn .28s ease both}
+.resource-tab-panel.active{display:grid}
+@keyframes resourcePanelIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.shared-link-address{
+  display:block;
+  margin-top:7px;
+  color:#77dcff;
+  font-size:.72rem;
+  overflow-wrap:anywhere;
+  text-decoration:none
+}
+.shared-link-address:hover{text-decoration:underline}
+.shared-preview{
+  margin-top:10px;
+  border:1px solid rgba(162,89,255,.18);
+  border-radius:12px;
+  background:rgba(162,89,255,.035);
+  overflow:hidden
+}
+.shared-preview summary{
+  padding:9px 11px;
+  color:#d9d2ff;
+  font-size:.72rem;
+  font-weight:700;
+  cursor:pointer;
+  list-style:none
+}
+.shared-preview summary::-webkit-details-marker{display:none}
+.shared-preview summary::after{content:"＋";float:right;color:#9a8cff}
+.shared-preview[open] summary::after{content:"−"}
+.shared-preview-frame{
+  aspect-ratio:16/9;
+  min-height:260px;
+  background:#080b12;
+  border-top:1px solid rgba(255,255,255,.07)
+}
+.shared-preview-frame iframe{
+  width:100%;
+  height:100%;
+  min-height:260px;
+  border:0;
+  display:block;
+  background:#fff
+}
+.week-files-list .resource-tab-panel .multi-public-file{margin-top:0!important}
+.project-files-list .resource-tabs-shell{margin-top:0}
+.project-card .resource-tab-panel .multi-public-file{
+  padding:9px!important;
+  border-radius:12px
+}
+
+@media(max-width:640px){
+  .resource-tabs-scroll{margin-right:-4px;padding-bottom:8px}
+  .resource-tab-button{padding:8px 11px}
+  .shared-preview-frame,.shared-preview-frame iframe{min-height:220px}
+}
+@media(max-width:420px){
+  .shared-preview-frame,.shared-preview-frame iframe{min-height:190px}
+}

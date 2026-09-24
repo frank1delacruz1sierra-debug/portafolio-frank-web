@@ -5,7 +5,7 @@ const courses = {
   aplicaciones: { short: 'Aplicaciones', full: 'Desarrollo de aplicaciones' }
 };
 const categories = ['Documento', 'Código', 'Imagen', 'Presentación', 'Hoja de cálculo', 'Comprimido', 'Figma', 'GitHub', 'Google Drive', 'YouTube', 'Enlace', 'Otro'];
-let course = 'algoritmos', unit = 1, week = 1, currentActivity = null, stagedFiles = [];
+let course = 'algoritmos', unit = 1, week = 1, currentActivity = null, stagedFiles = [], activityTabs = [{ id: 'general', label: 'Contenido', order: 0 }];
 
 function uid() { return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 function escapeHtml(v=''){return String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
@@ -88,12 +88,68 @@ function cloneExistingFiles(files=[]){
     label: f.label || f.name,
     category: f.category || ((!f.path && f.type === 'text/url') ? linkProvider(f.url||'') : inferCategory(f.name)),
     note: f.note || '',
+    tabId: f.tabId || 'general',
+    tabLabel: f.tabLabel || 'Contenido',
+    tabOrder: Number.isFinite(Number(f.tabOrder)) ? Number(f.tabOrder) : 0,
+    embed: f.embed !== false,
     order:index
   }));
 }
 
+function deriveTabs(files=[]){
+  const map=new Map();
+  files.forEach(item=>{
+    const id=item.tabId||'general';
+    if(!map.has(id)){
+      map.set(id,{
+        id,
+        label:item.tabLabel||'Contenido',
+        order:Number.isFinite(Number(item.tabOrder))?Number(item.tabOrder):map.size
+      });
+    }
+  });
+  const tabs=[...map.values()].sort((a,b)=>a.order-b.order);
+  return tabs.length?tabs.map((t,i)=>({...t,order:i})):[{id:'general',label:'Contenido',order:0}];
+}
+
+function syncTabMetadata(){
+  if(!activityTabs.length) activityTabs=[{id:'general',label:'Contenido',order:0}];
+  activityTabs.forEach((tab,index)=>tab.order=index);
+  stagedFiles.forEach(item=>{
+    const tab=activityTabs.find(t=>t.id===item.tabId)||activityTabs[0];
+    item.tabId=tab.id;
+    item.tabLabel=tab.label;
+    item.tabOrder=tab.order;
+  });
+}
+
+function renderTabOrganizer(){
+  const host=$('#tabOrganizer');
+  if(!host) return;
+  syncTabMetadata();
+  host.innerHTML='';
+  activityTabs.forEach((tab,index)=>{
+    const count=stagedFiles.filter(item=>item.tabId===tab.id).length;
+    const row=document.createElement('div');
+    row.className='tab-organizer-row';
+    row.dataset.tabId=tab.id;
+    row.innerHTML=`
+      <span class="tab-drag-index">${String(index+1).padStart(2,'0')}</span>
+      <input class="text-input tab-name-input" data-tab-field="label" value="${escapeHtml(tab.label)}" maxlength="70" aria-label="Nombre de la pestaña" />
+      <span class="tab-item-count">${count} elemento(s)</span>
+      <div class="tab-row-actions">
+        <button type="button" data-tab-action="up" ${index===0?'disabled':''} title="Mover pestaña a la izquierda">←</button>
+        <button type="button" data-tab-action="down" ${index===activityTabs.length-1?'disabled':''} title="Mover pestaña a la derecha">→</button>
+        <button type="button" data-tab-action="remove" class="remove-file" ${activityTabs.length===1?'disabled':''} title="Eliminar pestaña">×</button>
+      </div>`;
+    host.appendChild(row);
+  });
+}
+
 function renderFileOrganizer(){
   const host=$('#fileOrganizer');
+  syncTabMetadata();
+  renderTabOrganizer();
   $('#fileCount').textContent=stagedFiles.length;
   if(!stagedFiles.length){
     host.innerHTML='<div class="organizer-empty"><strong>Aún no agregaste contenido</strong><span>Selecciona archivos o agrega enlaces y luego ordénalos aquí antes de publicar.</span></div>';
@@ -105,6 +161,12 @@ function renderFileOrganizer(){
     const card=document.createElement('article');
     card.className='organizer-item';
     card.dataset.key=item.key;
+    const tabOptions=activityTabs.map(tab=>`<option value="${escapeHtml(tab.id)}" ${tab.id===item.tabId?'selected':''}>${escapeHtml(tab.label)}</option>`).join('');
+    const embedOption=isLinkItem(item)?`
+      <label class="organizer-embed">
+        <input type="checkbox" data-field="embed" ${item.embed!==false?'checked':''}>
+        <span>Mostrar vista previa dentro del portafolio</span>
+      </label>`:'';
     card.innerHTML=`
       <div class="organizer-index">${String(index+1).padStart(2,'0')}</div>
       <div class="organizer-main">
@@ -112,10 +174,12 @@ function renderFileOrganizer(){
           <span class="organizer-type">${itemCode(item)}</span>
           <div><strong title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</strong><small>${isLinkItem(item) ? `${linkProvider(item.url||'')} · ${item.existing?'guardado':'nuevo'}` : (item.existing?'Archivo ya guardado':'Archivo nuevo')}</small></div>
         </div>
-        <div class="organizer-fields">
-          <label>Nombre visible<input data-field="label" value="${escapeHtml(item.label)}" placeholder="Ej. Informe final"></label>
+        <div class="organizer-fields organizer-fields-expanded">
+          <label>Nombre visible<input data-field="label" value="${escapeHtml(item.label)}" placeholder="Ej. INF Método 1.1"></label>
           <label>Tipo<select data-field="category">${categories.map(c=>`<option ${c===item.category?'selected':''}>${c}</option>`).join('')}</select></label>
-          <label class="organizer-note">Nota opcional<input data-field="note" value="${escapeHtml(item.note)}" placeholder="Ej. Código fuente del ejercicio"></label>
+          <label>Pestaña<select data-field="tabId">${tabOptions}</select></label>
+          <label class="organizer-note">Nota opcional<input data-field="note" value="${escapeHtml(item.note)}" placeholder="Ej. Resultado del ejercicio 1.1"></label>
+          ${embedOption}
         </div>
       </div>
       <div class="organizer-controls">
@@ -134,12 +198,16 @@ function previewFile(item,index){
 }
 
 function renderPreview(){
+  syncTabMetadata();
   const title=$('#activityTitle')?.value.trim()||'Título de la actividad';
   const description=$('#description')?.value.trim()||'La descripción aparecerá aquí cuando la escribas.';
   $('#previewTitle').textContent=title;
   $('#previewDescription').textContent=description;
   $('#previewPosition').textContent=`${courses[course].short} · U${unit} · S${week}`;
-  $('#previewFiles').innerHTML=stagedFiles.length?stagedFiles.map(previewFile).join(''):'<span class="preview-empty">Sin archivos organizados todavía.</span>';
+  const groups=activityTabs.map(tab=>({tab,items:stagedFiles.filter(item=>item.tabId===tab.id)})).filter(group=>group.items.length);
+  $('#previewFiles').innerHTML=groups.length
+    ? groups.map(group=>`<div class="preview-tab-group"><strong class="preview-tab-title">${escapeHtml(group.tab.label)}</strong>${group.items.map(previewFile).join('')}</div>`).join('')
+    : '<span class="preview-empty">Sin archivos organizados todavía.</span>';
 }
 
 async function loadEditor(){
@@ -149,6 +217,7 @@ async function loadEditor(){
   $('#description').value=currentActivity?.description||'';
   $('#fileInput').value='';
   stagedFiles=cloneExistingFiles(currentActivity?.files||[]);
+  activityTabs=deriveTabs(stagedFiles);
   const state=!currentActivity?'Vacía':currentActivity.status==='draft'?'Borrador':'Publicada';
   $('#editorStatus').textContent=state;
   $('#editorStatus').className=`editor-status ${currentActivity?.status||'empty'}`;
@@ -190,7 +259,7 @@ $('#fileInput').addEventListener('change',e=>{
   const selected=[...e.target.files];
   selected.forEach(file=>stagedFiles.push({
     key:uid(), existing:false, kind:'file', file, name:file.name, type:file.type||'', path:'', url:'',
-    label:baseName(file.name), category:inferCategory(file.name), note:'', order:stagedFiles.length
+    label:baseName(file.name), category:inferCategory(file.name), note:'', tabId:activityTabs[0].id, tabLabel:activityTabs[0].label, tabOrder:activityTabs[0].order, embed:false, order:stagedFiles.length
   }));
   e.target.value='';
   renderFileOrganizer();
@@ -205,7 +274,7 @@ $('#addLinkButton').addEventListener('click',()=>{
     const label=labelInput.value.trim() || linkName(url);
     stagedFiles.push({
       key:uid(), existing:false, kind:'link', id:`link-${uid()}`, name:linkName(url), type:'text/url', path:'', url,
-      label, category:linkProvider(url), note:'', order:stagedFiles.length
+      label, category:linkProvider(url), note:'', tabId:activityTabs[0].id, tabLabel:activityTabs[0].label, tabOrder:activityTabs[0].order, embed:true, order:stagedFiles.length
     });
     labelInput.value='';
     urlInput.value='';
@@ -222,21 +291,71 @@ $('#linkUrl').addEventListener('keydown',e=>{
   if(e.key==='Enter'){ e.preventDefault(); $('#addLinkButton').click(); }
 });
 
+$('#addTabButton').addEventListener('click',()=>{
+  const input=$('#newTabName');
+  const label=input.value.trim();
+  if(!label){ $('#formMessage').className='form-message'; $('#formMessage').textContent='Escribe un nombre para la nueva pestaña.'; input.focus(); return; }
+  activityTabs.push({id:`tab-${uid()}`,label,order:activityTabs.length});
+  input.value='';
+  $('#formMessage').textContent='';
+  renderFileOrganizer();
+});
+$('#newTabName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#addTabButton').click();}});
+
+$('#tabOrganizer').addEventListener('input',e=>{
+  const row=e.target.closest('.tab-organizer-row');
+  if(!row || e.target.dataset.tabField!=='label') return;
+  const tab=activityTabs.find(t=>t.id===row.dataset.tabId);
+  if(!tab) return;
+  tab.label=e.target.value || 'Pestaña';
+  syncTabMetadata();
+  $$('#fileOrganizer select[data-field="tabId"]').forEach(select=>{
+    const option=[...select.options].find(opt=>opt.value===tab.id);
+    if(option) option.textContent=tab.label;
+  });
+  renderPreview();
+});
+$('#tabOrganizer').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-tab-action]');
+  if(!btn) return;
+  const row=btn.closest('.tab-organizer-row');
+  const index=activityTabs.findIndex(t=>t.id===row.dataset.tabId);
+  if(index<0) return;
+  if(btn.dataset.tabAction==='up' && index>0) [activityTabs[index-1],activityTabs[index]]=[activityTabs[index],activityTabs[index-1]];
+  if(btn.dataset.tabAction==='down' && index<activityTabs.length-1) [activityTabs[index+1],activityTabs[index]]=[activityTabs[index],activityTabs[index+1]];
+  if(btn.dataset.tabAction==='remove' && activityTabs.length>1){
+    const removed=activityTabs[index];
+    const target=activityTabs[index===0?1:0];
+    stagedFiles.forEach(item=>{if(item.tabId===removed.id)item.tabId=target.id;});
+    activityTabs.splice(index,1);
+  }
+  renderFileOrganizer();
+});
+
 $('#fileOrganizer').addEventListener('input',e=>{
   const card=e.target.closest('.organizer-item');
   if(!card) return;
   const item=stagedFiles.find(x=>x.key===card.dataset.key);
   if(!item) return;
   const field=e.target.dataset.field;
-  if(field) item[field]=e.target.value;
+  if(!field || e.target.type==='checkbox' || e.target.tagName==='SELECT') return;
+  item[field]=e.target.value;
   renderPreview();
 });
 $('#fileOrganizer').addEventListener('change',e=>{
   const card=e.target.closest('.organizer-item');
   if(!card) return;
   const item=stagedFiles.find(x=>x.key===card.dataset.key);
-  if(item && e.target.dataset.field) item[e.target.dataset.field]=e.target.value;
-  renderPreview();
+  if(!item) return;
+  const field=e.target.dataset.field;
+  if(!field) return;
+  if(field==='embed') item.embed=e.target.checked;
+  else if(field==='tabId'){
+    item.tabId=e.target.value;
+    const tab=activityTabs.find(t=>t.id===item.tabId)||activityTabs[0];
+    item.tabLabel=tab.label; item.tabOrder=tab.order;
+  } else item[field]=e.target.value;
+  renderFileOrganizer();
 });
 $('#fileOrganizer').addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');
@@ -266,6 +385,7 @@ async function saveActivity(status){
   }
 
   try{
+    syncTabMetadata();
     buttons.forEach(b=>b.disabled=true);
     msg.textContent=status==='published'?'Guardando contenido y publicando…':'Guardando borrador…';
     const saved=await PortfolioDB.save({
@@ -305,6 +425,7 @@ $('#deleteButton').addEventListener('click',async()=>{
     $('#activityTitle').value='';
     $('#description').value='';
     stagedFiles=[];
+    activityTabs=[{id:'general',label:'Contenido',order:0}];
     currentActivity=null;
     $('#editorStatus').textContent='Vacía';
     $('#editorStatus').className='editor-status empty';

@@ -50,3 +50,105 @@ body{min-width:0}
 @media(max-width:900px){.link-adder{grid-template-columns:1fr 1fr}.link-add-btn{grid-column:1/-1}}
 @media(max-width:560px){.link-adder{grid-template-columns:1fr}.link-add-btn{grid-column:auto;width:100%}}
 .resource-inputs{display:grid;gap:14px}.figma-link-section{border-color:rgba(162,89,255,.24);background:linear-gradient(145deg,rgba(162,89,255,.07),rgba(69,215,255,.025))}.provider-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.provider-chips span{padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);color:#b9c7df;font-size:.68rem;font-weight:700}.figma-link-section .provider-chips span:first-child{color:#fff;border-color:rgba(162,89,255,.3);background:rgba(162,89,255,.13)}
+
+
+.tab-builder-section{
+  margin-top:18px;
+  padding:18px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  background:rgba(255,255,255,.025)
+}
+.tab-create-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  margin-top:12px
+}
+.tab-organizer{
+  display:grid;
+  gap:9px;
+  margin-top:12px
+}
+.tab-organizer-row{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) auto auto;
+  gap:9px;
+  align-items:center;
+  padding:9px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:13px;
+  background:rgba(5,10,20,.36)
+}
+.tab-drag-index{
+  display:grid;
+  place-items:center;
+  width:32px;
+  height:32px;
+  border-radius:9px;
+  background:rgba(68,215,255,.09);
+  color:#64dcff;
+  font-size:.68rem;
+  font-weight:800
+}
+.tab-name-input{min-width:0}
+.tab-item-count{
+  color:var(--muted);
+  font-size:.73rem;
+  white-space:nowrap
+}
+.tab-row-actions{
+  display:flex;
+  gap:5px
+}
+.tab-row-actions button{
+  width:32px;
+  height:32px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:9px;
+  background:rgba(255,255,255,.035);
+  color:#fff;
+  cursor:pointer
+}
+.tab-row-actions button:hover:not(:disabled){background:rgba(255,255,255,.09)}
+.tab-row-actions button:disabled{opacity:.3;cursor:not-allowed}
+.organizer-fields-expanded{
+  grid-template-columns:repeat(3,minmax(0,1fr))
+}
+.organizer-fields-expanded .organizer-note{grid-column:span 2}
+.organizer-embed{
+  grid-column:1/-1;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center;
+  gap:9px;
+  min-height:40px;
+  padding:9px 11px;
+  border:1px solid rgba(162,89,255,.18);
+  border-radius:10px;
+  background:rgba(162,89,255,.055);
+  color:#c9c5dd!important;
+  font-size:.78rem!important
+}
+.organizer-embed input{width:16px;height:16px;accent-color:#8c6cff}
+.preview-tab-group{
+  display:grid;
+  gap:7px;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.07)
+}
+.preview-tab-title{
+  color:#62ddff;
+  font-size:.74rem;
+  letter-spacing:.04em
+}
+
+@media(max-width:760px){
+  .tab-create-row{grid-template-columns:1fr}
+  .tab-organizer-row{grid-template-columns:30px minmax(0,1fr)}
+  .tab-item-count{grid-column:2}
+  .tab-row-actions{grid-column:1/-1;justify-content:flex-end}
+  .organizer-fields-expanded{grid-template-columns:1fr}
+  .organizer-fields-expanded .organizer-note{grid-column:auto}
+}

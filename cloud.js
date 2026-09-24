@@ -63,6 +63,10 @@ const PortfolioCloud = (() => {
         label: item.label || item.name || item.fileName || `Archivo ${index + 1}`,
         category: item.category || 'Archivo',
         note: item.note || '',
+        tabId: item.tabId || 'general',
+        tabLabel: item.tabLabel || 'Contenido',
+        tabOrder: Number.isFinite(Number(item.tabOrder)) ? Number(item.tabOrder) : 0,
+        embed: item.embed !== false,
         order: Number.isFinite(Number(item.order)) ? Number(item.order) : index
       }))
       .sort((a, b) => a.order - b.order)
@@ -190,6 +194,10 @@ const PortfolioCloud = (() => {
           label: String(item.label || stored.name || `Archivo ${i + 1}`).trim(),
           category: String(item.category || 'Archivo').trim(),
           note: String(item.note || '').trim(),
+          tabId: String(item.tabId || 'general').trim() || 'general',
+          tabLabel: String(item.tabLabel || 'Contenido').trim() || 'Contenido',
+          tabOrder: Number.isFinite(Number(item.tabOrder)) ? Number(item.tabOrder) : 0,
+          embed: item.embed !== false,
           order: i
         });
       }

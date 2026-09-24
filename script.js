@@ -31,6 +31,49 @@ function displayUrl(value=''){ try{ const u=new URL(value); return `${u.hostname
 function linkProvider(value=''){ try{ const h=new URL(value).hostname.replace(/^www\./,'').toLowerCase(); if(h==='figma.com'||h.endsWith('.figma.com')) return 'Figma'; if(h==='github.com'||h.endsWith('.github.com')) return 'GitHub'; if(h==='drive.google.com'||h==='docs.google.com') return 'Google Drive'; if(h==='youtube.com'||h==='youtu.be'||h.endsWith('.youtube.com')) return 'YouTube'; return 'Enlace'; }catch{return 'Enlace';} }
 function linkAction(value=''){ const p=linkProvider(value); return p==='Figma'?'Abrir en Figma':p==='GitHub'?'Abrir GitHub':p==='Google Drive'?'Abrir Drive':p==='YouTube'?'Ver video':'Abrir enlace'; }
 function linkCode(value=''){ const p=linkProvider(value); return p==='Figma'?'FIGMA':p==='GitHub'?'GITHUB':p==='Google Drive'?'DRIVE':p==='YouTube'?'VIDEO':'LINK'; }
+function figmaEmbedUrl(value=''){
+  const url=safeUrl(value);
+  return url ? `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(url)}` : '';
+}
+function youtubeEmbedUrl(value=''){
+  try{
+    const u=new URL(value);
+    let id='';
+    if(u.hostname.replace(/^www\./,'')==='youtu.be') id=u.pathname.slice(1).split('/')[0];
+    else id=u.searchParams.get('v') || u.pathname.match(/\/shorts\/([^/?]+)/)?.[1] || u.pathname.match(/\/embed\/([^/?]+)/)?.[1] || '';
+    return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}` : '';
+  }catch{return '';}
+}
+function resourceEmbed(f){
+  if(!isLinkItem(f) || f.embed===false) return '';
+  const raw=safeUrl(f.url);
+  if(!raw) return '';
+  const provider=linkProvider(raw);
+  let src='';
+  if(provider==='Figma') src=figmaEmbedUrl(raw);
+  if(provider==='YouTube') src=youtubeEmbedUrl(raw);
+  if(!src) return '';
+  return `<details class="shared-preview"><summary>Vista previa dentro del portafolio</summary><div class="shared-preview-frame"><iframe src="${escapeHtml(src)}" title="Vista previa de ${escapeHtml(f.label||provider)}" loading="lazy" allowfullscreen></iframe></div></details>`;
+}
+function resourceGroups(files=[]){
+  const map=new Map();
+  files.forEach((f,index)=>{
+    const id=f.tabId||'general';
+    if(!map.has(id)){
+      map.set(id,{
+        id,
+        label:f.tabLabel||'Contenido',
+        order:Number.isFinite(Number(f.tabOrder))?Number(f.tabOrder):map.size,
+        items:[]
+      });
+    }
+    map.get(id).items.push({...f,_sourceOrder:index});
+  });
+  return [...map.values()]
+    .sort((a,b)=>a.order-b.order)
+    .map(group=>({...group,items:group.items.sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0))}));
+}
+function safeDomId(value=''){return String(value).replace(/[^a-zA-Z0-9_-]/g,'-')}
 function formatDescription(text=''){
   const src=String(text||'');
   const re=/(https?:\/\/[^\s<]+)/gi;
@@ -57,7 +100,7 @@ function renderUnits(){
   }
 }
 
-function compactFileCard(f){
+function compactFileCard(f,index=0){
   const link=isLinkItem(f);
   const label=escapeHtml(f.label||f.name||(link?'Enlace':'Archivo'));
   const original=escapeHtml(link?displayUrl(f.url):(f.name||'archivo'));
@@ -67,6 +110,7 @@ function compactFileCard(f){
   const url=escapeHtml(rawUrl);
   if(!rawUrl) return '';
   const thumb=!link && isImage(f.name)?`<a class="week-file-thumb" href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="${label}" loading="lazy"></a>`:'';
+  const visibleLink=link?`<a class="shared-link-address" href="${url}" target="_blank" rel="noopener noreferrer">${escapeHtml(displayUrl(rawUrl))}</a>`:'';
   const actions=link
     ? `<div class="file-actions"><a href="${url}" target="_blank" rel="noopener noreferrer">${linkAction(rawUrl)}</a><button type="button" class="copy-link-btn" data-copy-url="${url}">Copiar enlace</button></div>`
     : `<div class="file-actions"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>`;
@@ -80,10 +124,21 @@ function compactFileCard(f){
           <small>${category} · ${original}</small>
         </div>
       </div>
+      ${visibleLink}
       ${note}
       ${actions}
+      ${resourceEmbed(f)}
     </div>
   </article>`;
+}
+
+function tabbedResourceMarkup(files,scope){
+  const groups=resourceGroups(files);
+  if(!groups.length) return '';
+  const clean=safeDomId(scope);
+  const tabs=groups.map((group,index)=>`<button type="button" class="resource-tab-button ${index===0?'active':''}" data-resource-tab="${clean}-${safeDomId(group.id)}" aria-selected="${index===0?'true':'false'}">${escapeHtml(group.label)} <span>${group.items.length}</span></button>`).join('');
+  const panels=groups.map((group,index)=>`<section class="resource-tab-panel ${index===0?'active':''}" data-resource-panel="${clean}-${safeDomId(group.id)}">${group.items.map((item,i)=>compactFileCard(item,i)).join('')}</section>`).join('');
+  return `<div class="resource-tabs-shell"><div class="resource-tabs-scroll" role="tablist" aria-label="Grupos de ejercicios">${tabs}</div><div class="resource-tab-panels">${panels}</div></div>`;
 }
 
 function makeWeekCard(week, a){
@@ -103,7 +158,7 @@ function makeWeekCard(week, a){
     const files=publishedFiles(a);
     if(files.length){
       const wrap=document.createElement('div'); wrap.className='week-files-list';
-      files.forEach(f=>wrap.insertAdjacentHTML('beforeend',compactFileCard(f)));
+      wrap.innerHTML=tabbedResourceMarkup(files,`week-${activeCourse}-${activeUnit}-${week}`);
       card.appendChild(wrap);
     }
   } else {
@@ -127,24 +182,7 @@ async function renderWeeks(){
 function projectFileList(a){
   const files=publishedFiles(a);
   if(!files.length) return '';
-  return `<div class="project-files-list">${files.map((f,index)=>{
-    const link=isLinkItem(f);
-    const rawUrl=safeUrl(f.url);
-    if(!rawUrl) return '';
-    const url=escapeHtml(rawUrl);
-    const label=escapeHtml(f.label||f.name||(link?`Enlace ${index+1}`:`Archivo ${index+1}`));
-    const note=f.note?`<small>${escapeHtml(f.note)}</small>`:'';
-    const original=escapeHtml(link?displayUrl(rawUrl):(f.name||'archivo'));
-    const buttons=link
-      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkAction(rawUrl)}</a><button type="button" class="copy-link-btn" data-copy-url="${url}">Copiar</button>`
-      : `<a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a>`;
-    return `<article class="project-file-row ${link?'project-link-row':''}">
-      <span class="project-file-order">${String(index+1).padStart(2,'0')}</span>
-      <span class="project-file-kind">${link?linkCode(rawUrl):fileType(f.name)}</span>
-      <div class="project-file-info"><strong title="${label}">${label}</strong><span>${escapeHtml(f.category||(link?'Enlace':'Archivo'))} · ${original}</span>${note}</div>
-      <div class="project-file-buttons">${buttons}</div>
-    </article>`;
-  }).join('')}</div>`;
+  return tabbedResourceMarkup(files,`project-${a.course}-${a.unit}-${a.week}`);
 }
 
 function makeProjectCard(a,index=0){
@@ -260,6 +298,20 @@ $$('.reveal').forEach(el=>observer.observe(el));
 $$('.tilt-card').forEach(card=>{
   card.addEventListener('mousemove',e=>{if(matchMedia('(pointer:fine)').matches){const r=card.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;card.style.transform=`perspective(900px) rotateY(${x*5}deg) rotateX(${-y*4}deg)`}});
   card.addEventListener('mouseleave',()=>card.style.transform='');
+});
+
+document.addEventListener('click',e=>{
+  const tab=e.target.closest('.resource-tab-button');
+  if(!tab) return;
+  const shell=tab.closest('.resource-tabs-shell');
+  if(!shell) return;
+  shell.querySelectorAll('.resource-tab-button').forEach(btn=>{
+    const active=btn===tab;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-selected',active?'true':'false');
+  });
+  shell.querySelectorAll('.resource-tab-panel').forEach(panel=>panel.classList.toggle('active',panel.dataset.resourcePanel===tab.dataset.resourceTab));
+  tab.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 });
 
 document.addEventListener('click',async e=>{
