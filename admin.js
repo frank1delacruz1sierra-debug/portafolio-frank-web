@@ -278,8 +278,6 @@ $('#deleteButton').addEventListener('click',async()=>{
     $('#formMessage').textContent=`No se pudo eliminar: ${err.message}`;
   }
 });
-
-// Cambio de contraseña
 const passwordModal=$('#passwordModal');
 function openPasswordModal(){
   passwordModal.classList.add('open');

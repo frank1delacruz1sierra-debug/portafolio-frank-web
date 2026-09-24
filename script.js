@@ -36,13 +36,26 @@ function renderUnits(){
 }
 
 function compactFileCard(f){
-  const name=escapeHtml(f.label||f.name||'Archivo');
-  const rawName=escapeHtml(f.name||'archivo');
+  const label=escapeHtml(f.label||f.name||'Archivo');
+  const original=escapeHtml(f.name||'archivo');
+  const category=escapeHtml(f.category||'Archivo');
+  const note=f.note?`<p class="week-file-note">${escapeHtml(f.note)}</p>`:'';
   const url=escapeHtml(f.url||'');
-  return `<div class="file-card multi-public-file">
-    <div class="file-meta"><div class="file-icon">${fileType(f.name)}</div><div class="file-name-wrap"><div class="file-name" title="${name}">${name}</div><small>${escapeHtml(f.category||'Archivo')}</small></div></div>
-    <div class="file-actions"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>
-  </div>`;
+  const thumb=isImage(f.name)?`<a class="week-file-thumb" href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="${label}" loading="lazy"></a>`:'';
+  return `<article class="file-card multi-public-file">
+    ${thumb}
+    <div class="week-file-content">
+      <div class="file-meta">
+        <div class="file-icon">${fileType(f.name)}</div>
+        <div class="file-name-wrap">
+          <div class="file-name">${label}</div>
+          <small>${category} · ${original}</small>
+        </div>
+      </div>
+      ${note}
+      <div class="file-actions"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>
+    </div>
+  </article>`;
 }
 
 function makeWeekCard(week, a){
@@ -62,8 +75,7 @@ function makeWeekCard(week, a){
     const files=publishedFiles(a);
     if(files.length){
       const wrap=document.createElement('div'); wrap.className='week-files-list';
-      files.slice(0,3).forEach(f=>wrap.insertAdjacentHTML('beforeend',compactFileCard(f)));
-      if(files.length>3){const more=document.createElement('div');more.className='more-files';more.textContent=`+ ${files.length-3} archivo(s) más en Proyectos entregados`;wrap.appendChild(more)}
+      files.forEach(f=>wrap.insertAdjacentHTML('beforeend',compactFileCard(f)));
       card.appendChild(wrap);
     }
   } else {
@@ -94,7 +106,7 @@ function projectFileList(a){
     return `<article class="project-file-row">
       <span class="project-file-order">${String(index+1).padStart(2,'0')}</span>
       <span class="project-file-kind">${fileType(f.name)}</span>
-      <div class="project-file-info"><strong title="${label}">${label}</strong><span>${escapeHtml(f.category||'Archivo')}</span>${note}</div>
+      <div class="project-file-info"><strong title="${label}">${label}</strong><span>${escapeHtml(f.category||'Archivo')} · ${escapeHtml(f.name||'archivo')}</span>${note}</div>
       <div class="project-file-buttons"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>
     </article>`;
   }).join('')}</div>`;
