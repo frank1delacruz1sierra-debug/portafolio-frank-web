@@ -213,3 +213,4 @@ body{min-width:0}
 .project-file-buttons button:hover{background:rgba(255,255,255,.08)}
 .public-link-card .file-icon,.project-link-row .project-file-kind{font-size:.56rem}
 @media(max-width:640px){.file-actions .copy-link-btn{width:100%}.project-file-buttons button{width:100%}}
+.public-link-card .file-icon,.project-link-row .project-file-kind{min-width:36px;width:auto;padding:0 7px}.public-link-card:has(.file-icon){border-color:rgba(162,89,255,.16)}

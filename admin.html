@@ -59,27 +59,30 @@
             <textarea id="description" rows="5" maxlength="1800" placeholder="Describe brevemente qué se realizó en esta actividad..."></textarea>
           </label>
 
-          <label class="upload-zone" id="uploadZone">
-            <input type="file" id="fileInput" multiple />
-            <span class="upload-icon">＋</span>
-            <strong>Agregar uno o varios archivos</strong>
-            <small>Puedes seleccionar varios archivos de cualquier tipo a la vez.</small>
-            <span class="selected-file"><b id="fileCount">0</b> archivo(s) organizados</span>
-          </label>
+          <div class="resource-inputs">
+            <label class="upload-zone" id="uploadZone">
+              <input type="file" id="fileInput" multiple />
+              <span class="upload-icon">＋</span>
+              <strong>Subir archivos</strong>
+              <small>PDF, Word, ZIP, imágenes, código y otros formatos.</small>
+              <span class="selected-file"><b id="fileCount">0</b> elemento(s) organizados</span>
+            </label>
 
-          <section class="link-adder-section">
-            <div class="subsection-head"><div><p class="eyebrow">ENLACES EXTERNOS</p><h3>Agregar un enlace</h3></div><span>GitHub · Drive · YouTube · Web</span></div>
-            <div class="link-adder">
-              <label>Nombre visible
-                <input class="text-input" id="linkLabel" type="text" maxlength="120" placeholder="Ej. Repositorio del proyecto" />
-              </label>
-              <label>Dirección web
-                <input class="text-input" id="linkUrl" type="url" inputmode="url" placeholder="https://..." />
-              </label>
-              <button class="link-add-btn" type="button" id="addLinkButton">＋ Agregar enlace</button>
-            </div>
-            <p class="link-help">El enlace se agrega al mismo organizador que los archivos y puedes cambiar su nombre, nota y posición antes de publicar.</p>
-          </section>
+            <section class="link-adder-section figma-link-section">
+              <div class="subsection-head"><div><p class="eyebrow">ENLACES EXTERNOS</p><h3>Pegar enlace de Figma o de otra web</h3></div><span>Figma · GitHub · Drive · YouTube</span></div>
+              <div class="provider-chips" aria-label="Enlaces compatibles"><span>Figma</span><span>GitHub</span><span>Google Drive</span><span>YouTube</span><span>Web</span></div>
+              <div class="link-adder">
+                <label>Nombre visible
+                  <input class="text-input" id="linkLabel" type="text" maxlength="120" placeholder="Ej. Prototipo en Figma" />
+                </label>
+                <label>Enlace
+                  <input class="text-input" id="linkUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://www.figma.com/design/..." />
+                </label>
+                <button class="link-add-btn" type="button" id="addLinkButton">＋ Agregar enlace</button>
+              </div>
+              <p class="link-help">Pega el enlace compartido de Figma. Se guardará junto con los archivos y podrás ordenarlo, renombrarlo y añadir una nota antes de publicar.</p>
+            </section>
+          </div>
 
           <section class="file-organizer-section">
             <div class="subsection-head"><div><p class="eyebrow">ORDEN DE PUBLICACIÓN</p><h3>Organiza archivos y enlaces</h3></div><span>↑ ↓ para ordenar</span></div>

@@ -4,7 +4,7 @@ const courses = {
   algoritmos: { short: 'Algoritmos', full: 'Algoritmos y bases de datos' },
   aplicaciones: { short: 'Aplicaciones', full: 'Desarrollo de aplicaciones' }
 };
-const categories = ['Documento', 'Código', 'Imagen', 'Presentación', 'Hoja de cálculo', 'Comprimido', 'Enlace', 'Otro'];
+const categories = ['Documento', 'Código', 'Imagen', 'Presentación', 'Hoja de cálculo', 'Comprimido', 'Figma', 'GitHub', 'Google Drive', 'YouTube', 'Enlace', 'Otro'];
 let course = 'algoritmos', unit = 1, week = 1, currentActivity = null, stagedFiles = [];
 
 function uid() { return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
@@ -26,7 +26,7 @@ function inferCategory(name=''){
 }
 function baseName(name='archivo') { return name.replace(/\.[^.]+$/, '').replace(/[-_]+/g,' ').trim() || 'Archivo'; }
 function isLinkItem(item){ return item?.kind === 'link' || (!item?.path && item?.type === 'text/url'); }
-function itemCode(item){ return isLinkItem(item) ? 'LINK' : fileCode(item?.name || ''); }
+function itemCode(item){ if(!isLinkItem(item)) return fileCode(item?.name || ''); const p=linkProvider(item?.url||''); return p==='Figma'?'FIGMA':p==='GitHub'?'GITHUB':p==='Google Drive'?'DRIVE':p==='YouTube'?'VIDEO':'LINK'; }
 function normalizeHttpUrl(value=''){
   const raw=String(value).trim();
   if(!raw) throw new Error('Escribe una dirección web.');
@@ -35,7 +35,8 @@ function normalizeHttpUrl(value=''){
   if(!['http:','https:'].includes(parsed.protocol)) throw new Error('El enlace debe comenzar con http:// o https://.');
   return parsed.href;
 }
-function linkName(url=''){ try { return new URL(url).hostname.replace(/^www\./,'') || 'Enlace'; } catch { return 'Enlace'; } }
+function linkProvider(url=''){ try { const h=new URL(url).hostname.replace(/^www\./,'').toLowerCase(); if(h==='figma.com'||h.endsWith('.figma.com')) return 'Figma'; if(h==='github.com'||h.endsWith('.github.com')) return 'GitHub'; if(h==='drive.google.com'||h==='docs.google.com') return 'Google Drive'; if(h==='youtube.com'||h==='youtu.be'||h.endsWith('.youtube.com')) return 'YouTube'; return 'Enlace'; } catch { return 'Enlace'; } }
+function linkName(url=''){ const provider=linkProvider(url); if(provider==='Figma') return 'Diseño de Figma'; if(provider==='GitHub') return 'Repositorio de GitHub'; if(provider==='Google Drive') return 'Archivo de Google Drive'; if(provider==='YouTube') return 'Video de YouTube'; try { return new URL(url).hostname.replace(/^www\./,'') || 'Enlace'; } catch { return 'Enlace'; } }
 
 async function guard(){
   if(!PortfolioCloud.isConfigured()){
@@ -85,7 +86,7 @@ function cloneExistingFiles(files=[]){
     path: f.path,
     url: f.url,
     label: f.label || f.name,
-    category: f.category || ((!f.path && f.type === 'text/url') ? 'Enlace' : inferCategory(f.name)),
+    category: f.category || ((!f.path && f.type === 'text/url') ? linkProvider(f.url||'') : inferCategory(f.name)),
     note: f.note || '',
     order:index
   }));
@@ -109,7 +110,7 @@ function renderFileOrganizer(){
       <div class="organizer-main">
         <div class="organizer-file-head">
           <span class="organizer-type">${itemCode(item)}</span>
-          <div><strong title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</strong><small>${isLinkItem(item) ? (item.existing?'Enlace guardado':'Enlace nuevo') : (item.existing?'Archivo ya guardado':'Archivo nuevo')}</small></div>
+          <div><strong title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</strong><small>${isLinkItem(item) ? `${linkProvider(item.url||'')} · ${item.existing?'guardado':'nuevo'}` : (item.existing?'Archivo ya guardado':'Archivo nuevo')}</small></div>
         </div>
         <div class="organizer-fields">
           <label>Nombre visible<input data-field="label" value="${escapeHtml(item.label)}" placeholder="Ej. Informe final"></label>
@@ -204,7 +205,7 @@ $('#addLinkButton').addEventListener('click',()=>{
     const label=labelInput.value.trim() || linkName(url);
     stagedFiles.push({
       key:uid(), existing:false, kind:'link', id:`link-${uid()}`, name:linkName(url), type:'text/url', path:'', url,
-      label, category:'Enlace', note:'', order:stagedFiles.length
+      label, category:linkProvider(url), note:'', order:stagedFiles.length
     });
     labelInput.value='';
     urlInput.value='';

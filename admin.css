@@ -49,3 +49,4 @@ body{min-width:0}
 .link-help{margin-top:9px;color:var(--muted);font-size:.72rem;line-height:1.5}
 @media(max-width:900px){.link-adder{grid-template-columns:1fr 1fr}.link-add-btn{grid-column:1/-1}}
 @media(max-width:560px){.link-adder{grid-template-columns:1fr}.link-add-btn{grid-column:auto;width:100%}}
+.resource-inputs{display:grid;gap:14px}.figma-link-section{border-color:rgba(162,89,255,.24);background:linear-gradient(145deg,rgba(162,89,255,.07),rgba(69,215,255,.025))}.provider-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.provider-chips span{padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);color:#b9c7df;font-size:.68rem;font-weight:700}.figma-link-section .provider-chips span:first-child{color:#fff;border-color:rgba(162,89,255,.3);background:rgba(162,89,255,.13)}

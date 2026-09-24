@@ -28,6 +28,9 @@ function publishedFiles(a){ return (a?.files || []).filter(f=>f?.url); }
 function isLinkItem(f){ return f?.kind === 'link' || (!f?.path && f?.type === 'text/url'); }
 function safeUrl(value=''){ try{ const u=new URL(String(value||'')); return ['http:','https:'].includes(u.protocol) ? u.href : ''; }catch{return '';} }
 function displayUrl(value=''){ try{ const u=new URL(value); return `${u.hostname.replace(/^www\./,'')}${u.pathname==='/'?'':u.pathname}`; }catch{return value||'';} }
+function linkProvider(value=''){ try{ const h=new URL(value).hostname.replace(/^www\./,'').toLowerCase(); if(h==='figma.com'||h.endsWith('.figma.com')) return 'Figma'; if(h==='github.com'||h.endsWith('.github.com')) return 'GitHub'; if(h==='drive.google.com'||h==='docs.google.com') return 'Google Drive'; if(h==='youtube.com'||h==='youtu.be'||h.endsWith('.youtube.com')) return 'YouTube'; return 'Enlace'; }catch{return 'Enlace';} }
+function linkAction(value=''){ const p=linkProvider(value); return p==='Figma'?'Abrir en Figma':p==='GitHub'?'Abrir GitHub':p==='Google Drive'?'Abrir Drive':p==='YouTube'?'Ver video':'Abrir enlace'; }
+function linkCode(value=''){ const p=linkProvider(value); return p==='Figma'?'FIGMA':p==='GitHub'?'GITHUB':p==='Google Drive'?'DRIVE':p==='YouTube'?'VIDEO':'LINK'; }
 function formatDescription(text=''){
   const src=String(text||'');
   const re=/(https?:\/\/[^\s<]+)/gi;
@@ -65,13 +68,13 @@ function compactFileCard(f){
   if(!rawUrl) return '';
   const thumb=!link && isImage(f.name)?`<a class="week-file-thumb" href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="${label}" loading="lazy"></a>`:'';
   const actions=link
-    ? `<div class="file-actions"><a href="${url}" target="_blank" rel="noopener noreferrer">Abrir enlace</a><button type="button" class="copy-link-btn" data-copy-url="${url}">Copiar enlace</button></div>`
+    ? `<div class="file-actions"><a href="${url}" target="_blank" rel="noopener noreferrer">${linkAction(rawUrl)}</a><button type="button" class="copy-link-btn" data-copy-url="${url}">Copiar enlace</button></div>`
     : `<div class="file-actions"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>`;
   return `<article class="file-card multi-public-file ${link?'public-link-card':''}">
     ${thumb}
     <div class="week-file-content">
       <div class="file-meta">
-        <div class="file-icon">${link?'LINK':fileType(f.name)}</div>
+        <div class="file-icon">${link?linkCode(rawUrl):fileType(f.name)}</div>
         <div class="file-name-wrap">
           <div class="file-name">${label}</div>
           <small>${category} · ${original}</small>
@@ -133,11 +136,11 @@ function projectFileList(a){
     const note=f.note?`<small>${escapeHtml(f.note)}</small>`:'';
     const original=escapeHtml(link?displayUrl(rawUrl):(f.name||'archivo'));
     const buttons=link
-      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">Abrir</a><button type="button" class="copy-link-btn" data-copy-url="${url}">Copiar</button>`
+      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkAction(rawUrl)}</a><button type="button" class="copy-link-btn" data-copy-url="${url}">Copiar</button>`
       : `<a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a>`;
     return `<article class="project-file-row ${link?'project-link-row':''}">
       <span class="project-file-order">${String(index+1).padStart(2,'0')}</span>
-      <span class="project-file-kind">${link?'LINK':fileType(f.name)}</span>
+      <span class="project-file-kind">${link?linkCode(rawUrl):fileType(f.name)}</span>
       <div class="project-file-info"><strong title="${label}">${label}</strong><span>${escapeHtml(f.category||(link?'Enlace':'Archivo'))} · ${original}</span>${note}</div>
       <div class="project-file-buttons">${buttons}</div>
     </article>`;
