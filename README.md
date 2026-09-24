@@ -1,8 +1,7 @@
 # Portafolio Académico — Frank de la Cruz Sierra
 
-![Vista previa del portafolio](portada-portafolio.png)
+![Portada del portafolio](portada-portafolio.png)
 
-Portafolio web académico para presentar actividades, archivos y proyectos de **Algoritmos** y **Desarrollo de Aplicaciones**. La página está publicada con GitHub Pages y utiliza Supabase para autenticación, base de datos y almacenamiento.
+Portafolio web académico para presentar actividades de **Algoritmos** y **Desarrollo de Aplicaciones**, organizadas por unidades y semanas. Cada actividad puede incluir descripción completa, varios archivos y enlaces externos organizados antes de publicarse.
 
-**Autor:** Frank de la Cruz Sierra  
-**Carrera:** Ingeniería de Sistemas y Computación
+La web utiliza **GitHub Pages** para su publicación y **Supabase** para autenticación, datos y almacenamiento.

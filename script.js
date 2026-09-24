@@ -25,6 +25,25 @@ function fileType(name=''){
 function isImage(name=''){ return ['png','jpg','jpeg','gif','webp','svg'].includes(name.split('.').pop()?.toLowerCase()); }
 function escapeHtml(v=''){return String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
 function publishedFiles(a){ return (a?.files || []).filter(f=>f?.url); }
+function isLinkItem(f){ return f?.kind === 'link' || (!f?.path && f?.type === 'text/url'); }
+function safeUrl(value=''){ try{ const u=new URL(String(value||'')); return ['http:','https:'].includes(u.protocol) ? u.href : ''; }catch{return '';} }
+function displayUrl(value=''){ try{ const u=new URL(value); return `${u.hostname.replace(/^www\./,'')}${u.pathname==='/'?'':u.pathname}`; }catch{return value||'';} }
+function formatDescription(text=''){
+  const src=String(text||'');
+  const re=/(https?:\/\/[^\s<]+)/gi;
+  let out='', last=0, match;
+  while((match=re.exec(src))){
+    out += escapeHtml(src.slice(last,match.index));
+    const clean=match[0].replace(/[),.;!?]+$/,'');
+    const trailing=match[0].slice(clean.length);
+    const url=safeUrl(clean);
+    out += url ? `<a class="inline-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(clean)}</a>` : escapeHtml(match[0]);
+    out += escapeHtml(trailing);
+    last=match.index+match[0].length;
+  }
+  out += escapeHtml(src.slice(last));
+  return out;
+}
 
 function renderUnits(){
   const host = $('#unitSelector'); host.innerHTML='';
@@ -36,24 +55,30 @@ function renderUnits(){
 }
 
 function compactFileCard(f){
-  const label=escapeHtml(f.label||f.name||'Archivo');
-  const original=escapeHtml(f.name||'archivo');
-  const category=escapeHtml(f.category||'Archivo');
+  const link=isLinkItem(f);
+  const label=escapeHtml(f.label||f.name||(link?'Enlace':'Archivo'));
+  const original=escapeHtml(link?displayUrl(f.url):(f.name||'archivo'));
+  const category=escapeHtml(f.category||(link?'Enlace':'Archivo'));
   const note=f.note?`<p class="week-file-note">${escapeHtml(f.note)}</p>`:'';
-  const url=escapeHtml(f.url||'');
-  const thumb=isImage(f.name)?`<a class="week-file-thumb" href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="${label}" loading="lazy"></a>`:'';
-  return `<article class="file-card multi-public-file">
+  const rawUrl=safeUrl(f.url);
+  const url=escapeHtml(rawUrl);
+  if(!rawUrl) return '';
+  const thumb=!link && isImage(f.name)?`<a class="week-file-thumb" href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="${label}" loading="lazy"></a>`:'';
+  const actions=link
+    ? `<div class="file-actions"><a href="${url}" target="_blank" rel="noopener noreferrer">Abrir enlace</a><button type="button" class="copy-link-btn" data-copy-url="${url}">Copiar enlace</button></div>`
+    : `<div class="file-actions"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>`;
+  return `<article class="file-card multi-public-file ${link?'public-link-card':''}">
     ${thumb}
     <div class="week-file-content">
       <div class="file-meta">
-        <div class="file-icon">${fileType(f.name)}</div>
+        <div class="file-icon">${link?'LINK':fileType(f.name)}</div>
         <div class="file-name-wrap">
           <div class="file-name">${label}</div>
           <small>${category} · ${original}</small>
         </div>
       </div>
       ${note}
-      <div class="file-actions"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>
+      ${actions}
     </div>
   </article>`;
 }
@@ -71,7 +96,7 @@ function makeWeekCard(week, a){
 
   if(a){
     if(a.title){ const t=document.createElement('h4'); t.className='week-activity-title'; t.textContent=a.title; card.appendChild(t); }
-    if(a.description){ const p=document.createElement('p'); p.className='week-description'; p.textContent=a.description; card.appendChild(p); }
+    if(a.description){ const p=document.createElement('p'); p.className='week-description'; p.innerHTML=formatDescription(a.description); card.appendChild(p); }
     const files=publishedFiles(a);
     if(files.length){
       const wrap=document.createElement('div'); wrap.className='week-files-list';
@@ -100,14 +125,21 @@ function projectFileList(a){
   const files=publishedFiles(a);
   if(!files.length) return '';
   return `<div class="project-files-list">${files.map((f,index)=>{
-    const url=escapeHtml(f.url);
-    const label=escapeHtml(f.label||f.name||`Archivo ${index+1}`);
+    const link=isLinkItem(f);
+    const rawUrl=safeUrl(f.url);
+    if(!rawUrl) return '';
+    const url=escapeHtml(rawUrl);
+    const label=escapeHtml(f.label||f.name||(link?`Enlace ${index+1}`:`Archivo ${index+1}`));
     const note=f.note?`<small>${escapeHtml(f.note)}</small>`:'';
-    return `<article class="project-file-row">
+    const original=escapeHtml(link?displayUrl(rawUrl):(f.name||'archivo'));
+    const buttons=link
+      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">Abrir</a><button type="button" class="copy-link-btn" data-copy-url="${url}">Copiar</button>`
+      : `<a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a>`;
+    return `<article class="project-file-row ${link?'project-link-row':''}">
       <span class="project-file-order">${String(index+1).padStart(2,'0')}</span>
-      <span class="project-file-kind">${fileType(f.name)}</span>
-      <div class="project-file-info"><strong title="${label}">${label}</strong><span>${escapeHtml(f.category||'Archivo')} · ${escapeHtml(f.name||'archivo')}</span>${note}</div>
-      <div class="project-file-buttons"><a href="${url}" target="_blank" rel="noopener">Ver</a><a href="${url}?download=${encodeURIComponent(f.name||'archivo')}" target="_blank" rel="noopener">Descargar</a></div>
+      <span class="project-file-kind">${link?'LINK':fileType(f.name)}</span>
+      <div class="project-file-info"><strong title="${label}">${label}</strong><span>${escapeHtml(f.category||(link?'Enlace':'Archivo'))} · ${original}</span>${note}</div>
+      <div class="project-file-buttons">${buttons}</div>
     </article>`;
   }).join('')}</div>`;
 }
@@ -119,7 +151,7 @@ function makeProjectCard(a,index=0){
   card.style.animationDelay=`${Math.min(index*55,330)}ms`;
   const courseLabel=courses[a.course]?.short||a.course;
   const files=publishedFiles(a);
-  const firstImage=files.find(f=>isImage(f.name));
+  const firstImage=files.find(f=>!isLinkItem(f) && isImage(f.name));
   const preview=firstImage ? `<a href="${escapeHtml(firstImage.url)}" target="_blank" rel="noopener" class="project-preview"><img src="${escapeHtml(firstImage.url)}" alt="Vista previa de ${escapeHtml(firstImage.label||firstImage.name)}" loading="lazy"></a>` : '';
   card.innerHTML=`
     <div class="project-card-top">
@@ -129,8 +161,8 @@ function makeProjectCard(a,index=0){
     ${preview}
     <div class="project-card-body">
       <h3>${escapeHtml(a.title || `${courseLabel} · Unidad ${a.unit} · Semana ${a.week}`)}</h3>
-      <p>${escapeHtml(a.description || 'Actividad publicada.')}</p>
-      <div class="project-files-heading"><span>${files.length}</span> archivo(s) publicados</div>
+      <p>${formatDescription(a.description || 'Actividad publicada.')}</p>
+      <div class="project-files-heading"><span>${files.length}</span> elemento(s) publicados</div>
       ${projectFileList(a)}
     </div>`;
   return card;
@@ -225,6 +257,24 @@ $$('.reveal').forEach(el=>observer.observe(el));
 $$('.tilt-card').forEach(card=>{
   card.addEventListener('mousemove',e=>{if(matchMedia('(pointer:fine)').matches){const r=card.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;card.style.transform=`perspective(900px) rotateY(${x*5}deg) rotateX(${-y*4}deg)`}});
   card.addEventListener('mouseleave',()=>card.style.transform='');
+});
+
+document.addEventListener('click',async e=>{
+  const button=e.target.closest('.copy-link-btn');
+  if(!button) return;
+  const url=button.dataset.copyUrl;
+  if(!url) return;
+  const previous=button.textContent;
+  try{
+    await navigator.clipboard.writeText(url);
+    button.textContent='Copiado';
+  }catch{
+    const area=document.createElement('textarea');
+    area.value=url; area.style.position='fixed'; area.style.opacity='0';
+    document.body.appendChild(area); area.select(); document.execCommand('copy'); area.remove();
+    button.textContent='Copiado';
+  }
+  setTimeout(()=>button.textContent=previous,1200);
 });
 
 async function init(){

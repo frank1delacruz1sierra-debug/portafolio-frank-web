@@ -4,7 +4,7 @@ const courses = {
   algoritmos: { short: 'Algoritmos', full: 'Algoritmos y bases de datos' },
   aplicaciones: { short: 'Aplicaciones', full: 'Desarrollo de aplicaciones' }
 };
-const categories = ['Documento', 'Código', 'Imagen', 'Presentación', 'Hoja de cálculo', 'Comprimido', 'Enlace/otro'];
+const categories = ['Documento', 'Código', 'Imagen', 'Presentación', 'Hoja de cálculo', 'Comprimido', 'Enlace', 'Otro'];
 let course = 'algoritmos', unit = 1, week = 1, currentActivity = null, stagedFiles = [];
 
 function uid() { return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
@@ -25,6 +25,17 @@ function inferCategory(name=''){
   return ({IMG:'Imagen',PDF:'Documento',DOC:'Documento',XLS:'Hoja de cálculo',PPT:'Presentación',ZIP:'Comprimido',CODE:'Código'})[code]||'Enlace/otro';
 }
 function baseName(name='archivo') { return name.replace(/\.[^.]+$/, '').replace(/[-_]+/g,' ').trim() || 'Archivo'; }
+function isLinkItem(item){ return item?.kind === 'link' || (!item?.path && item?.type === 'text/url'); }
+function itemCode(item){ return isLinkItem(item) ? 'LINK' : fileCode(item?.name || ''); }
+function normalizeHttpUrl(value=''){
+  const raw=String(value).trim();
+  if(!raw) throw new Error('Escribe una dirección web.');
+  const candidate=/^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  const parsed=new URL(candidate);
+  if(!['http:','https:'].includes(parsed.protocol)) throw new Error('El enlace debe comenzar con http:// o https://.');
+  return parsed.href;
+}
+function linkName(url=''){ try { return new URL(url).hostname.replace(/^www\./,'') || 'Enlace'; } catch { return 'Enlace'; } }
 
 async function guard(){
   if(!PortfolioCloud.isConfigured()){
@@ -67,13 +78,14 @@ function cloneExistingFiles(files=[]){
   return files.map((f,index)=>({
     key: uid(),
     existing: true,
+    kind: f.kind || ((!f.path && f.type === 'text/url') ? 'link' : 'file'),
     id: f.id,
     name: f.name,
     type: f.type,
     path: f.path,
     url: f.url,
     label: f.label || f.name,
-    category: f.category || inferCategory(f.name),
+    category: f.category || ((!f.path && f.type === 'text/url') ? 'Enlace' : inferCategory(f.name)),
     note: f.note || '',
     order:index
   }));
@@ -83,7 +95,7 @@ function renderFileOrganizer(){
   const host=$('#fileOrganizer');
   $('#fileCount').textContent=stagedFiles.length;
   if(!stagedFiles.length){
-    host.innerHTML='<div class="organizer-empty"><strong>Aún no agregaste archivos</strong><span>Selecciona uno o varios archivos y luego ordénalos aquí antes de publicar.</span></div>';
+    host.innerHTML='<div class="organizer-empty"><strong>Aún no agregaste contenido</strong><span>Selecciona archivos o agrega enlaces y luego ordénalos aquí antes de publicar.</span></div>';
     renderPreview();
     return;
   }
@@ -96,8 +108,8 @@ function renderFileOrganizer(){
       <div class="organizer-index">${String(index+1).padStart(2,'0')}</div>
       <div class="organizer-main">
         <div class="organizer-file-head">
-          <span class="organizer-type">${fileCode(item.name)}</span>
-          <div><strong title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</strong><small>${item.existing?'Archivo ya guardado':'Archivo nuevo'}</small></div>
+          <span class="organizer-type">${itemCode(item)}</span>
+          <div><strong title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</strong><small>${isLinkItem(item) ? (item.existing?'Enlace guardado':'Enlace nuevo') : (item.existing?'Archivo ya guardado':'Archivo nuevo')}</small></div>
         </div>
         <div class="organizer-fields">
           <label>Nombre visible<input data-field="label" value="${escapeHtml(item.label)}" placeholder="Ej. Informe final"></label>
@@ -108,7 +120,7 @@ function renderFileOrganizer(){
       <div class="organizer-controls">
         <button type="button" data-action="up" title="Subir" ${index===0?'disabled':''}>↑</button>
         <button type="button" data-action="down" title="Bajar" ${index===stagedFiles.length-1?'disabled':''}>↓</button>
-        ${item.url?`<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" title="Ver archivo">↗</a>`:''}
+        ${item.url?`<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" title="Abrir contenido">↗</a>`:''}
         <button type="button" data-action="remove" class="remove-file" title="Quitar">×</button>
       </div>`;
     host.appendChild(card);
@@ -176,11 +188,37 @@ $('#description').addEventListener('input',renderPreview);
 $('#fileInput').addEventListener('change',e=>{
   const selected=[...e.target.files];
   selected.forEach(file=>stagedFiles.push({
-    key:uid(), existing:false, file, name:file.name, type:file.type||'', path:'', url:'',
+    key:uid(), existing:false, kind:'file', file, name:file.name, type:file.type||'', path:'', url:'',
     label:baseName(file.name), category:inferCategory(file.name), note:'', order:stagedFiles.length
   }));
   e.target.value='';
   renderFileOrganizer();
+});
+
+$('#addLinkButton').addEventListener('click',()=>{
+  const labelInput=$('#linkLabel');
+  const urlInput=$('#linkUrl');
+  const msg=$('#formMessage');
+  try{
+    const url=normalizeHttpUrl(urlInput.value);
+    const label=labelInput.value.trim() || linkName(url);
+    stagedFiles.push({
+      key:uid(), existing:false, kind:'link', id:`link-${uid()}`, name:linkName(url), type:'text/url', path:'', url,
+      label, category:'Enlace', note:'', order:stagedFiles.length
+    });
+    labelInput.value='';
+    urlInput.value='';
+    msg.textContent='';
+    renderFileOrganizer();
+  }catch(err){
+    msg.className='form-message';
+    msg.textContent=err.message || 'No se pudo agregar el enlace.';
+    urlInput.focus();
+  }
+});
+
+$('#linkUrl').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); $('#addLinkButton').click(); }
 });
 
 $('#fileOrganizer').addEventListener('input',e=>{
@@ -221,14 +259,14 @@ async function saveActivity(status){
   if(status==='published'){
     if(!title){msg.textContent='Escribe un título para la actividad antes de publicarla.';return}
     if(!description){msg.textContent='Escribe una descripción antes de publicar.';return}
-    if(!stagedFiles.length){msg.textContent='Agrega al menos un archivo antes de publicar.';return}
+    if(!stagedFiles.length){msg.textContent='Agrega al menos un archivo o enlace antes de publicar.';return}
   } else if(!title && !description && !stagedFiles.length){
     msg.textContent='Agrega algún contenido antes de guardar el borrador.'; return;
   }
 
   try{
     buttons.forEach(b=>b.disabled=true);
-    msg.textContent=status==='published'?'Subiendo archivos y publicando…':'Guardando borrador y archivos…';
+    msg.textContent=status==='published'?'Guardando contenido y publicando…':'Guardando borrador…';
     const saved=await PortfolioDB.save({
       course,unit,week,title,description,status,
       files:stagedFiles,
@@ -238,8 +276,8 @@ async function saveActivity(status){
     stagedFiles=cloneExistingFiles(saved.files);
     msg.className='form-message success';
     msg.textContent=status==='published'
-      ? `Actividad publicada con ${saved.files.length} archivo(s). Ya es visible en el portafolio.`
-      : `Borrador guardado con ${saved.files.length} archivo(s). Todavía no aparece en la página pública.`;
+      ? `Actividad publicada con ${saved.files.length} elemento(s). Ya es visible en el portafolio.`
+      : `Borrador guardado con ${saved.files.length} elemento(s). Todavía no aparece en la página pública.`;
     $('#editorStatus').textContent=status==='published'?'Publicada':'Borrador';
     $('#editorStatus').className=`editor-status ${status}`;
     renderFileOrganizer();
@@ -260,7 +298,7 @@ $('#draftButton').addEventListener('click',()=>saveActivity('draft'));
 $('#deleteButton').addEventListener('click',async()=>{
   const a=await PortfolioDB.get(course,unit,week);
   if(!a){$('#formMessage').className='form-message';$('#formMessage').textContent='Esta semana no tiene una actividad guardada.';return}
-  if(!confirm(`¿Eliminar completamente la actividad de la semana ${week} y todos sus archivos?`))return;
+  if(!confirm(`¿Eliminar completamente la actividad de la semana ${week} y todo su contenido?`))return;
   try{
     await PortfolioDB.remove(course,unit,week);
     $('#activityTitle').value='';
@@ -270,7 +308,7 @@ $('#deleteButton').addEventListener('click',async()=>{
     $('#editorStatus').textContent='Vacía';
     $('#editorStatus').className='editor-status empty';
     $('#formMessage').className='form-message success';
-    $('#formMessage').textContent='Actividad y archivos eliminados.';
+    $('#formMessage').textContent='Actividad y contenido eliminados.';
     renderFileOrganizer();
     await renderWeeks();await updateStats();
   }catch(err){

@@ -203,3 +203,13 @@ body{min-width:0}
   .mobile-menu a{padding:10px;color:var(--muted);border-radius:9px}
   .mobile-menu a:hover{color:#fff;background:rgba(255,255,255,.05)}
 }
+
+.inline-link{color:var(--primary-2);text-decoration:underline;text-decoration-color:rgba(68,215,255,.35);text-underline-offset:3px;overflow-wrap:anywhere}
+.inline-link:hover{color:#fff;text-decoration-color:currentColor}
+.copy-link-btn{border:1px solid var(--line);background:rgba(255,255,255,.035);color:#fff;border-radius:8px;padding:6px 9px;font:inherit;font-size:.72rem;cursor:pointer}
+.copy-link-btn:hover{background:rgba(255,255,255,.09)}
+.file-actions .copy-link-btn{min-height:31px}
+.project-file-buttons button{padding:6px 7px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.035);color:#fff;font-size:.66rem;white-space:nowrap;cursor:pointer}
+.project-file-buttons button:hover{background:rgba(255,255,255,.08)}
+.public-link-card .file-icon,.project-link-row .project-file-kind{font-size:.56rem}
+@media(max-width:640px){.file-actions .copy-link-btn{width:100%}.project-file-buttons button{width:100%}}

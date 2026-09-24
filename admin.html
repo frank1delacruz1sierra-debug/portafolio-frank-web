@@ -49,7 +49,7 @@
       <aside class="editor-panel multi-editor">
         <div class="editor-head">
           <div class="editor-head-row"><div><p class="eyebrow">EDITOR Y ORGANIZADOR</p><h2 id="editorTitle">Unidad 1 · Semana 1</h2></div><span class="editor-status empty" id="editorStatus">Vacía</span></div>
-          <p>Prepara el contenido, ordena todos los archivos y revisa la vista previa antes de publicarlo.</p>
+          <p>Prepara el contenido, agrega archivos o enlaces, ordénalos y revisa la vista previa antes de publicarlo.</p>
         </div>
         <form id="activityForm">
           <label>Título de la actividad
@@ -67,8 +67,22 @@
             <span class="selected-file"><b id="fileCount">0</b> archivo(s) organizados</span>
           </label>
 
+          <section class="link-adder-section">
+            <div class="subsection-head"><div><p class="eyebrow">ENLACES EXTERNOS</p><h3>Agregar un enlace</h3></div><span>GitHub · Drive · YouTube · Web</span></div>
+            <div class="link-adder">
+              <label>Nombre visible
+                <input class="text-input" id="linkLabel" type="text" maxlength="120" placeholder="Ej. Repositorio del proyecto" />
+              </label>
+              <label>Dirección web
+                <input class="text-input" id="linkUrl" type="url" inputmode="url" placeholder="https://..." />
+              </label>
+              <button class="link-add-btn" type="button" id="addLinkButton">＋ Agregar enlace</button>
+            </div>
+            <p class="link-help">El enlace se agrega al mismo organizador que los archivos y puedes cambiar su nombre, nota y posición antes de publicar.</p>
+          </section>
+
           <section class="file-organizer-section">
-            <div class="subsection-head"><div><p class="eyebrow">ORDEN DE PUBLICACIÓN</p><h3>Organiza tus archivos</h3></div><span>↑ ↓ para ordenar</span></div>
+            <div class="subsection-head"><div><p class="eyebrow">ORDEN DE PUBLICACIÓN</p><h3>Organiza archivos y enlaces</h3></div><span>↑ ↓ para ordenar</span></div>
             <div class="file-organizer" id="fileOrganizer"></div>
           </section>
 

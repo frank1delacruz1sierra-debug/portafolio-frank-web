@@ -54,6 +54,7 @@ const PortfolioCloud = (() => {
     const source = Array.isArray(row?.files) && row.files.length ? row.files : legacyFiles(row);
     return source
       .map((item, index) => ({
+        kind: item.kind || ((!item.path && item.type === 'text/url') ? 'link' : 'file'),
         id: item.id || item.path || `file-${index}`,
         name: item.name || item.fileName || 'archivo',
         type: item.type || item.fileType || '',
@@ -150,10 +151,23 @@ const PortfolioCloud = (() => {
       for (let i = 0; i < files.length; i++) {
         const item = files[i];
         let stored = null;
-        if (item.file instanceof File) {
+        if (item.kind === 'link' || (!item.path && item.type === 'text/url' && !(item.file instanceof File))) {
+          const target = String(item.url || '').trim();
+          const parsed = new URL(target);
+          if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Uno de los enlaces no es válido.');
+          stored = {
+            kind: 'link',
+            id: item.id || `link-${Date.now()}-${i}`,
+            name: item.name || parsed.hostname,
+            type: 'text/url',
+            path: '',
+            url: parsed.href
+          };
+        } else if (item.file instanceof File) {
           const upload = await uploadFile(course, unit, week, item.file);
           uploadedPaths.push(upload.path);
           stored = {
+            kind: 'file',
             id: upload.path,
             name: item.file.name,
             type: item.file.type || '',
@@ -162,6 +176,7 @@ const PortfolioCloud = (() => {
           };
         } else {
           stored = {
+            kind: item.kind || 'file',
             id: item.id || item.path,
             name: item.name,
             type: item.type || '',
