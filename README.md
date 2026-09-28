@@ -5,3 +5,8 @@ Portafolio web para organizar y publicar actividades de **Algoritmos** y **Desar
 La página permite mostrar descripciones completas, varios archivos por actividad, enlaces compartidos como Figma y contenido organizado en pestañas deslizables por grupos de ejercicios.
 
 ![Portada del portafolio](portada-portafolio.png)
+
+
+## Organización por pestañas
+
+El panel permite crear pestañas vacías, agrupar archivos o enlaces ya cargados, o crear una pestaña mientras se seleccionan archivos nuevos. También puede elegirse la pestaña de destino antes de subir cada archivo o enlace.

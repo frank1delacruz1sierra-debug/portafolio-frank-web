@@ -6,6 +6,8 @@ const courses = {
 };
 const categories = ['Documento', 'Código', 'Imagen', 'Presentación', 'Hoja de cálculo', 'Comprimido', 'Figma', 'GitHub', 'Google Drive', 'YouTube', 'Enlace', 'Otro'];
 let course = 'algoritmos', unit = 1, week = 1, currentActivity = null, stagedFiles = [], activityTabs = [{ id: 'general', label: 'Contenido', order: 0 }];
+let selectedItemKeys = new Set();
+let pendingTabUploadName = '';
 
 function uid() { return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 function escapeHtml(v=''){return String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
@@ -123,6 +125,32 @@ function syncTabMetadata(){
   });
 }
 
+function tabOptionsHtml(selectedId){
+  return activityTabs.map(tab=>`<option value="${escapeHtml(tab.id)}" ${tab.id===selectedId?'selected':''}>${escapeHtml(tab.label)}</option>`).join('');
+}
+
+function refreshTargetSelectors(){
+  const fileTarget=$('#fileTargetTab');
+  const linkTarget=$('#linkTargetTab');
+  [fileTarget,linkTarget].forEach(select=>{
+    if(!select) return;
+    const previous=select.value;
+    select.innerHTML=tabOptionsHtml(activityTabs.some(t=>t.id===previous)?previous:activityTabs[0].id);
+  });
+}
+
+function createTab(label){
+  const clean=String(label||'').trim();
+  if(!clean) return null;
+  const tab={id:`tab-${uid()}`,label:clean,order:activityTabs.length};
+  activityTabs.push(tab);
+  return tab;
+}
+
+function selectedItems(){
+  return stagedFiles.filter(item=>selectedItemKeys.has(item.key));
+}
+
 function renderTabOrganizer(){
   const host=$('#tabOrganizer');
   if(!host) return;
@@ -138,12 +166,18 @@ function renderTabOrganizer(){
       <input class="text-input tab-name-input" data-tab-field="label" value="${escapeHtml(tab.label)}" maxlength="70" aria-label="Nombre de la pestaña" />
       <span class="tab-item-count">${count} elemento(s)</span>
       <div class="tab-row-actions">
+        <button type="button" data-tab-action="addfiles" title="Subir archivos directamente a esta pestaña">＋</button>
         <button type="button" data-tab-action="up" ${index===0?'disabled':''} title="Mover pestaña a la izquierda">←</button>
         <button type="button" data-tab-action="down" ${index===activityTabs.length-1?'disabled':''} title="Mover pestaña a la derecha">→</button>
         <button type="button" data-tab-action="remove" class="remove-file" ${activityTabs.length===1?'disabled':''} title="Eliminar pestaña">×</button>
       </div>`;
     host.appendChild(row);
   });
+  refreshTargetSelectors();
+  const selectedCount=$('#selectedCount');
+  if(selectedCount) selectedCount.textContent=selectedItemKeys.size;
+  const selectedButton=$('#createTabFromSelected');
+  if(selectedButton) selectedButton.disabled=selectedItemKeys.size===0;
 }
 
 function renderFileOrganizer(){
@@ -167,8 +201,12 @@ function renderFileOrganizer(){
         <input type="checkbox" data-field="embed" ${item.embed!==false?'checked':''}>
         <span>Mostrar vista previa dentro del portafolio</span>
       </label>`:'';
+    const checked=selectedItemKeys.has(item.key)?'checked':'';
     card.innerHTML=`
-      <div class="organizer-index">${String(index+1).padStart(2,'0')}</div>
+      <div class="organizer-index-wrap">
+        <label class="organizer-select" title="Seleccionar para crear una pestaña"><input type="checkbox" data-select-item ${checked}><span></span></label>
+        <div class="organizer-index">${String(index+1).padStart(2,'0')}</div>
+      </div>
       <div class="organizer-main">
         <div class="organizer-file-head">
           <span class="organizer-type">${itemCode(item)}</span>
@@ -212,6 +250,7 @@ function renderPreview(){
 
 async function loadEditor(){
   currentActivity=await PortfolioDB.get(course,unit,week);
+  selectedItemKeys.clear();
   $('#editorTitle').textContent=`Unidad ${unit} · Semana ${week}`;
   $('#activityTitle').value=currentActivity?.title||'';
   $('#description').value=currentActivity?.description||'';
@@ -257,11 +296,29 @@ $('#description').addEventListener('input',renderPreview);
 
 $('#fileInput').addEventListener('change',e=>{
   const selected=[...e.target.files];
+  const targetId=$('#fileTargetTab')?.value || activityTabs[0].id;
+  const targetTab=activityTabs.find(t=>t.id===targetId) || activityTabs[0];
   selected.forEach(file=>stagedFiles.push({
     key:uid(), existing:false, kind:'file', file, name:file.name, type:file.type||'', path:'', url:'',
-    label:baseName(file.name), category:inferCategory(file.name), note:'', tabId:activityTabs[0].id, tabLabel:activityTabs[0].label, tabOrder:activityTabs[0].order, embed:false, order:stagedFiles.length
+    label:baseName(file.name), category:inferCategory(file.name), note:'', tabId:targetTab.id, tabLabel:targetTab.label, tabOrder:targetTab.order, embed:false, order:stagedFiles.length
   }));
   e.target.value='';
+  renderFileOrganizer();
+});
+
+$('#tabFileInput').addEventListener('change',e=>{
+  const selected=[...e.target.files];
+  if(!selected.length){ pendingTabUploadName=''; return; }
+  const tab=createTab(pendingTabUploadName);
+  pendingTabUploadName='';
+  if(!tab){ e.target.value=''; return; }
+  selected.forEach(file=>stagedFiles.push({
+    key:uid(), existing:false, kind:'file', file, name:file.name, type:file.type||'', path:'', url:'',
+    label:baseName(file.name), category:inferCategory(file.name), note:'', tabId:tab.id, tabLabel:tab.label, tabOrder:tab.order, embed:false, order:stagedFiles.length
+  }));
+  e.target.value='';
+  $('#newTabName').value='';
+  $('#formMessage').textContent='';
   renderFileOrganizer();
 });
 
@@ -272,9 +329,11 @@ $('#addLinkButton').addEventListener('click',()=>{
   try{
     const url=normalizeHttpUrl(urlInput.value);
     const label=labelInput.value.trim() || linkName(url);
+    const targetId=$('#linkTargetTab')?.value || activityTabs[0].id;
+    const targetTab=activityTabs.find(t=>t.id===targetId) || activityTabs[0];
     stagedFiles.push({
       key:uid(), existing:false, kind:'link', id:`link-${uid()}`, name:linkName(url), type:'text/url', path:'', url,
-      label, category:linkProvider(url), note:'', tabId:activityTabs[0].id, tabLabel:activityTabs[0].label, tabOrder:activityTabs[0].order, embed:true, order:stagedFiles.length
+      label, category:linkProvider(url), note:'', tabId:targetTab.id, tabLabel:targetTab.label, tabOrder:targetTab.order, embed:true, order:stagedFiles.length
     });
     labelInput.value='';
     urlInput.value='';
@@ -295,11 +354,35 @@ $('#addTabButton').addEventListener('click',()=>{
   const input=$('#newTabName');
   const label=input.value.trim();
   if(!label){ $('#formMessage').className='form-message'; $('#formMessage').textContent='Escribe un nombre para la nueva pestaña.'; input.focus(); return; }
-  activityTabs.push({id:`tab-${uid()}`,label,order:activityTabs.length});
+  createTab(label);
   input.value='';
   $('#formMessage').textContent='';
   renderFileOrganizer();
 });
+
+$('#createTabFromSelected').addEventListener('click',()=>{
+  const input=$('#newTabName');
+  const label=input.value.trim();
+  const items=selectedItems();
+  if(!label){ $('#formMessage').className='form-message'; $('#formMessage').textContent='Escribe el nombre de la pestaña antes de agrupar los elementos seleccionados.'; input.focus(); return; }
+  if(!items.length){ $('#formMessage').className='form-message'; $('#formMessage').textContent='Selecciona uno o más archivos o enlaces del organizador.'; return; }
+  const tab=createTab(label);
+  items.forEach(item=>{ item.tabId=tab.id; item.tabLabel=tab.label; item.tabOrder=tab.order; });
+  selectedItemKeys.clear();
+  input.value='';
+  $('#formMessage').className='form-message success';
+  $('#formMessage').textContent=`Pestaña “${label}” creada con ${items.length} elemento(s).`;
+  renderFileOrganizer();
+});
+
+$('#createTabWithUpload').addEventListener('click',()=>{
+  const input=$('#newTabName');
+  const label=input.value.trim();
+  if(!label){ $('#formMessage').className='form-message'; $('#formMessage').textContent='Escribe el nombre de la pestaña antes de seleccionar los archivos.'; input.focus(); return; }
+  pendingTabUploadName=label;
+  $('#tabFileInput').click();
+});
+
 $('#newTabName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#addTabButton').click();}});
 
 $('#tabOrganizer').addEventListener('input',e=>{
@@ -321,6 +404,13 @@ $('#tabOrganizer').addEventListener('click',e=>{
   const row=btn.closest('.tab-organizer-row');
   const index=activityTabs.findIndex(t=>t.id===row.dataset.tabId);
   if(index<0) return;
+  if(btn.dataset.tabAction==='addfiles'){
+    const tab=activityTabs[index];
+    const target=$('#fileTargetTab');
+    if(target) target.value=tab.id;
+    $('#fileInput').click();
+    return;
+  }
   if(btn.dataset.tabAction==='up' && index>0) [activityTabs[index-1],activityTabs[index]]=[activityTabs[index],activityTabs[index-1]];
   if(btn.dataset.tabAction==='down' && index<activityTabs.length-1) [activityTabs[index+1],activityTabs[index]]=[activityTabs[index],activityTabs[index+1]];
   if(btn.dataset.tabAction==='remove' && activityTabs.length>1){
@@ -347,6 +437,11 @@ $('#fileOrganizer').addEventListener('change',e=>{
   if(!card) return;
   const item=stagedFiles.find(x=>x.key===card.dataset.key);
   if(!item) return;
+  if(e.target.matches('[data-select-item]')){
+    if(e.target.checked) selectedItemKeys.add(item.key); else selectedItemKeys.delete(item.key);
+    renderTabOrganizer();
+    return;
+  }
   const field=e.target.dataset.field;
   if(!field) return;
   if(field==='embed') item.embed=e.target.checked;
@@ -363,7 +458,10 @@ $('#fileOrganizer').addEventListener('click',e=>{
   const card=btn.closest('.organizer-item');
   const index=stagedFiles.findIndex(x=>x.key===card.dataset.key);
   if(index<0) return;
-  if(btn.dataset.action==='remove') stagedFiles.splice(index,1);
+  if(btn.dataset.action==='remove'){
+    selectedItemKeys.delete(stagedFiles[index].key);
+    stagedFiles.splice(index,1);
+  }
   if(btn.dataset.action==='up' && index>0) [stagedFiles[index-1],stagedFiles[index]]=[stagedFiles[index],stagedFiles[index-1]];
   if(btn.dataset.action==='down' && index<stagedFiles.length-1) [stagedFiles[index+1],stagedFiles[index]]=[stagedFiles[index],stagedFiles[index+1]];
   renderFileOrganizer();
@@ -425,6 +523,7 @@ $('#deleteButton').addEventListener('click',async()=>{
     $('#activityTitle').value='';
     $('#description').value='';
     stagedFiles=[];
+    selectedItemKeys.clear();
     activityTabs=[{id:'general',label:'Contenido',order:0}];
     currentActivity=null;
     $('#editorStatus').textContent='Vacía';

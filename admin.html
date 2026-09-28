@@ -60,13 +60,19 @@
           </label>
 
           <div class="resource-inputs">
-            <label class="upload-zone" id="uploadZone">
-              <input type="file" id="fileInput" multiple />
-              <span class="upload-icon">＋</span>
-              <strong>Subir archivos</strong>
-              <small>PDF, Word, ZIP, imágenes, código y otros formatos.</small>
-              <span class="selected-file"><b id="fileCount">0</b> elemento(s) organizados</span>
-            </label>
+            <section class="upload-block">
+              <label class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput" multiple />
+                <span class="upload-icon">＋</span>
+                <strong>Subir archivos</strong>
+                <small>PDF, Word, ZIP, imágenes, código y otros formatos.</small>
+                <span class="selected-file"><b id="fileCount">0</b> elemento(s) organizados</span>
+              </label>
+              <label class="target-tab-field">Pestaña para los archivos que vas a subir
+                <select id="fileTargetTab"></select>
+              </label>
+              <input type="file" id="tabFileInput" multiple hidden />
+            </section>
 
             <section class="link-adder-section figma-link-section">
               <div class="subsection-head"><div><p class="eyebrow">ENLACES EXTERNOS</p><h3>Pegar enlace de Figma o de otra web</h3></div><span>Figma · GitHub · Drive · YouTube</span></div>
@@ -77,6 +83,9 @@
                 </label>
                 <label>Enlace
                   <input class="text-input" id="linkUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://www.figma.com/design/..." />
+                </label>
+                <label>Pestaña de destino
+                  <select class="text-input" id="linkTargetTab"></select>
                 </label>
                 <button class="link-add-btn" type="button" id="addLinkButton">＋ Agregar enlace</button>
               </div>
@@ -91,10 +100,14 @@
             </div>
             <div class="tab-create-row">
               <input class="text-input" id="newTabName" type="text" maxlength="70" placeholder="Ej. Ejercicios 1.x" />
-              <button class="link-add-btn" type="button" id="addTabButton">＋ Crear pestaña</button>
+              <button class="link-add-btn" type="button" id="addTabButton">＋ Crear vacía</button>
+            </div>
+            <div class="tab-create-actions">
+              <button class="tab-action-btn" type="button" id="createTabFromSelected" disabled>Crear con seleccionados (<span id="selectedCount">0</span>)</button>
+              <button class="tab-action-btn accent" type="button" id="createTabWithUpload">Crear y elegir archivos</button>
             </div>
             <div class="tab-organizer" id="tabOrganizer"></div>
-            <p class="link-help">Crea las pestañas que necesites y luego asigna cada archivo o enlace a una de ellas. En el portafolio se podrán deslizar horizontalmente.</p>
+            <p class="link-help">Puedes crear una pestaña vacía, agrupar archivos o enlaces que ya estén cargados marcándolos en el organizador, o crear una pestaña y seleccionar archivos nuevos en el mismo paso. El botón ＋ de cada pestaña permite subir más archivos directamente a ella.</p>
           </section>
 
           <section class="file-organizer-section">
