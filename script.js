@@ -91,6 +91,27 @@ function formatDescription(text=''){
   return out;
 }
 
+function urlsFromText(text=''){
+  const matches=String(text||'').match(/https?:\/\/[^\s<]+/gi)||[];
+  const urls=[];
+  matches.forEach(value=>{
+    const clean=value.replace(/[),.;!?]+$/,'');
+    const url=safeUrl(clean);
+    if(url && !urls.includes(url)) urls.push(url);
+  });
+  return urls;
+}
+
+function activitySharedLinks(a){
+  const links=publishedFiles(a).filter(isLinkItem).map(item=>({...item,url:safeUrl(item.url)})).filter(item=>item.url);
+  urlsFromText(a?.description||'').forEach(url=>{
+    if(!links.some(item=>item.url.replace(/\/$/,'')===url.replace(/\/$/,''))){
+      links.push({kind:'link',type:'text/url',url,label:linkProvider(url),category:linkProvider(url),tabId:'general',tabLabel:'Contenido',tabOrder:0,order:999});
+    }
+  });
+  return links;
+}
+
 function renderUnits(){
   const host = $('#unitSelector'); host.innerHTML='';
   for(let i=1;i<=4;i++){
@@ -169,7 +190,7 @@ function makeWeekCard(week, a){
     const files=publishedFiles(a);
     if(files.length){
       const wrap=document.createElement('div'); wrap.className='week-files-list';
-      wrap.innerHTML=sharedLinksMarkup(files)+tabbedResourceMarkup(files,`week-${activeCourse}-${activeUnit}-${week}`);
+      wrap.innerHTML=sharedLinksMarkup(activitySharedLinks(a))+tabbedResourceMarkup(files,`week-${activeCourse}-${activeUnit}-${week}`);
       card.appendChild(wrap);
     }
   } else {
@@ -215,7 +236,7 @@ function makeProjectCard(a,index=0){
       <h3>${escapeHtml(a.title || `${courseLabel} · Unidad ${a.unit} · Semana ${a.week}`)}</h3>
       <p>${formatDescription(a.description || 'Actividad publicada.')}</p>
       <div class="project-files-heading"><span>${files.length}</span> elemento(s) publicados</div>
-      ${sharedLinksMarkup(files)}
+      ${sharedLinksMarkup(activitySharedLinks(a))}
       ${projectFileList(a)}
     </div>`;
   return card;

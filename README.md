@@ -14,3 +14,7 @@ El panel permite crear pestañas vacías, agrupar archivos o enlaces ya cargados
 
 ## Actualización
 Los enlaces externos se muestran de forma destacada en la portada. El panel permite seleccionar archivos ya cargados y crear grupos automáticamente según su numeración (1.1, 1.2, 1.3 → Ejercicios 1.x).
+
+
+## Enlaces compartidos
+Los enlaces de Figma, GitHub, Drive, YouTube u otras webs se publican junto con los archivos. Si se deja un enlace escrito en el campo al pulsar Publicar, la web lo incorpora automáticamente.

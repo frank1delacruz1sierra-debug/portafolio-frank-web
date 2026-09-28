@@ -338,27 +338,40 @@ $('#tabFileInput').addEventListener('change',e=>{
   renderFileOrganizer();
 });
 
-$('#addLinkButton').addEventListener('click',()=>{
+function addPendingLink(showMessage=true){
   const labelInput=$('#linkLabel');
   const urlInput=$('#linkUrl');
   const msg=$('#formMessage');
-  try{
-    const url=normalizeHttpUrl(urlInput.value);
-    const label=labelInput.value.trim() || linkName(url);
-    const targetId=$('#linkTargetTab')?.value || activityTabs[0].id;
-    const targetTab=activityTabs.find(t=>t.id===targetId) || activityTabs[0];
-    stagedFiles.push({
-      key:uid(), existing:false, kind:'link', id:`link-${uid()}`, name:linkName(url), type:'text/url', path:'', url,
-      label, category:linkProvider(url), note:'', tabId:targetTab.id, tabLabel:targetTab.label, tabOrder:targetTab.order, embed:true, order:stagedFiles.length
-    });
+  const raw=urlInput.value.trim();
+  if(!raw) return false;
+  const url=normalizeHttpUrl(raw);
+  const duplicate=stagedFiles.some(item=>isLinkItem(item) && String(item.url||'').replace(/\/$/,'')===url.replace(/\/$/,''));
+  if(duplicate){
     labelInput.value='';
     urlInput.value='';
-    msg.textContent='';
-    renderFileOrganizer();
-  }catch(err){
+    if(showMessage){msg.className='form-message success';msg.textContent='El enlace ya estaba agregado a esta actividad.';}
+    return false;
+  }
+  const label=labelInput.value.trim() || linkName(url);
+  const targetId=$('#linkTargetTab')?.value || activityTabs[0].id;
+  const targetTab=activityTabs.find(t=>t.id===targetId) || activityTabs[0];
+  stagedFiles.push({
+    key:uid(), existing:false, kind:'link', id:`link-${uid()}`, name:linkName(url), type:'text/url', path:'', url,
+    label, category:linkProvider(url), note:'', tabId:targetTab.id, tabLabel:targetTab.label, tabOrder:targetTab.order, embed:true, order:stagedFiles.length
+  });
+  labelInput.value='';
+  urlInput.value='';
+  if(showMessage){msg.className='form-message success';msg.textContent=`Enlace de ${linkProvider(url)} agregado a la actividad.`;}
+  renderFileOrganizer();
+  return true;
+}
+
+$('#addLinkButton').addEventListener('click',()=>{
+  try{addPendingLink(true)}catch(err){
+    const msg=$('#formMessage');
     msg.className='form-message';
     msg.textContent=err.message || 'No se pudo agregar el enlace.';
-    urlInput.focus();
+    $('#linkUrl').focus();
   }
 });
 
@@ -491,6 +504,14 @@ async function saveActivity(status){
   const msg=$('#formMessage');
   const buttons=$$('.publish-actions button');
   msg.className='form-message';
+
+  if($('#linkUrl')?.value.trim()){
+    try{addPendingLink(false)}catch(err){
+      msg.textContent=err.message || 'El enlace pendiente no es válido.';
+      $('#linkUrl').focus();
+      return;
+    }
+  }
 
   if(status==='published'){
     if(!title){msg.textContent='Escribe un título para la actividad antes de publicarla.';return}
