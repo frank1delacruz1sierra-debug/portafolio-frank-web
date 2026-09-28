@@ -10,3 +10,7 @@ La página permite mostrar descripciones completas, varios archivos por activida
 ## Organización por pestañas
 
 El panel permite crear pestañas vacías, agrupar archivos o enlaces ya cargados, o crear una pestaña mientras se seleccionan archivos nuevos. También puede elegirse la pestaña de destino antes de subir cada archivo o enlace.
+
+
+## Actualización
+Los enlaces externos se muestran de forma destacada en la portada. El panel permite seleccionar archivos ya cargados y crear grupos automáticamente según su numeración (1.1, 1.2, 1.3 → Ejercicios 1.x).

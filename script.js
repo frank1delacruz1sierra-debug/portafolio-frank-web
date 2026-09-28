@@ -132,6 +132,17 @@ function compactFileCard(f,index=0){
   </article>`;
 }
 
+function sharedLinksMarkup(files=[]){
+  const links=files.filter(isLinkItem).filter(item=>safeUrl(item.url));
+  if(!links.length) return '';
+  return `<div class="shared-links-summary"><div class="shared-links-title">Enlaces compartidos</div><div class="shared-links-list">${links.map(item=>{
+    const raw=safeUrl(item.url);
+    const label=escapeHtml(item.label||linkProvider(raw));
+    const provider=escapeHtml(linkProvider(raw));
+    return `<a class="shared-link-pill" href="${escapeHtml(raw)}" target="_blank" rel="noopener noreferrer"><span>${provider}</span><strong>${label}</strong><small>${escapeHtml(displayUrl(raw))}</small></a>`;
+  }).join('')}</div></div>`;
+}
+
 function tabbedResourceMarkup(files,scope){
   const groups=resourceGroups(files);
   if(!groups.length) return '';
@@ -158,7 +169,7 @@ function makeWeekCard(week, a){
     const files=publishedFiles(a);
     if(files.length){
       const wrap=document.createElement('div'); wrap.className='week-files-list';
-      wrap.innerHTML=tabbedResourceMarkup(files,`week-${activeCourse}-${activeUnit}-${week}`);
+      wrap.innerHTML=sharedLinksMarkup(files)+tabbedResourceMarkup(files,`week-${activeCourse}-${activeUnit}-${week}`);
       card.appendChild(wrap);
     }
   } else {
@@ -204,6 +215,7 @@ function makeProjectCard(a,index=0){
       <h3>${escapeHtml(a.title || `${courseLabel} · Unidad ${a.unit} · Semana ${a.week}`)}</h3>
       <p>${formatDescription(a.description || 'Actividad publicada.')}</p>
       <div class="project-files-heading"><span>${files.length}</span> elemento(s) publicados</div>
+      ${sharedLinksMarkup(files)}
       ${projectFileList(a)}
     </div>`;
   return card;

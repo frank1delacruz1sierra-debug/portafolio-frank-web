@@ -151,6 +151,20 @@ function selectedItems(){
   return stagedFiles.filter(item=>selectedItemKeys.has(item.key));
 }
 
+function inferGroupLabel(items=[]){
+  const texts=items.map(item=>`${item.label||''} ${item.name||''}`);
+  const majors=[];
+  texts.forEach(text=>{
+    const match=String(text).match(/(?:^|\D)(\d+)\s*[.\-_]\s*\d+(?:\D|$)/);
+    if(match) majors.push(match[1]);
+  });
+  if(majors.length && majors.every(value=>value===majors[0])) return `Ejercicios ${majors[0]}.x`;
+  const used=new Set(activityTabs.map(tab=>tab.label.toLowerCase()));
+  let number=1;
+  while(used.has(`grupo ${number}`)) number++;
+  return `Grupo ${number}`;
+}
+
 function renderTabOrganizer(){
   const host=$('#tabOrganizer');
   if(!host) return;
@@ -307,18 +321,20 @@ $('#fileInput').addEventListener('change',e=>{
 });
 
 $('#tabFileInput').addEventListener('change',e=>{
-  const selected=[...e.target.files];
-  if(!selected.length){ pendingTabUploadName=''; return; }
-  const tab=createTab(pendingTabUploadName);
-  pendingTabUploadName='';
-  if(!tab){ e.target.value=''; return; }
-  selected.forEach(file=>stagedFiles.push({
-    key:uid(), existing:false, kind:'file', file, name:file.name, type:file.type||'', path:'', url:'',
+  const files=[...e.target.files];
+  if(!files.length){ e.target.value=''; pendingTabUploadName=''; return; }
+  const previews=files.map(file=>({label:baseName(file.name),name:file.name}));
+  const label=pendingTabUploadName==='__AUTO__' ? inferGroupLabel(previews) : (pendingTabUploadName || inferGroupLabel(previews));
+  const tab=createTab(label);
+  if(!tab){ e.target.value=''; pendingTabUploadName=''; return; }
+  files.forEach(file=>stagedFiles.push({
+    key:uid(), existing:false, kind:'file', file, id:'', name:file.name, type:file.type||'', path:'', url:'',
     label:baseName(file.name), category:inferCategory(file.name), note:'', tabId:tab.id, tabLabel:tab.label, tabOrder:tab.order, embed:false, order:stagedFiles.length
   }));
+  pendingTabUploadName='';
   e.target.value='';
-  $('#newTabName').value='';
-  $('#formMessage').textContent='';
+  $('#formMessage').className='form-message success';
+  $('#formMessage').textContent=`Grupo “${label}” creado automáticamente con ${files.length} archivo(s).`;
   renderFileOrganizer();
 });
 
@@ -361,29 +377,31 @@ $('#addTabButton').addEventListener('click',()=>{
 });
 
 $('#createTabFromSelected').addEventListener('click',()=>{
-  const input=$('#newTabName');
-  const label=input.value.trim();
   const items=selectedItems();
-  if(!label){ $('#formMessage').className='form-message'; $('#formMessage').textContent='Escribe el nombre de la pestaña antes de agrupar los elementos seleccionados.'; input.focus(); return; }
   if(!items.length){ $('#formMessage').className='form-message'; $('#formMessage').textContent='Selecciona uno o más archivos o enlaces del organizador.'; return; }
+  const label=inferGroupLabel(items);
   const tab=createTab(label);
   items.forEach(item=>{ item.tabId=tab.id; item.tabLabel=tab.label; item.tabOrder=tab.order; });
   selectedItemKeys.clear();
-  input.value='';
   $('#formMessage').className='form-message success';
-  $('#formMessage').textContent=`Pestaña “${label}” creada con ${items.length} elemento(s).`;
+  $('#formMessage').textContent=`Grupo “${label}” creado automáticamente con ${items.length} elemento(s). Puedes renombrarlo si deseas.`;
   renderFileOrganizer();
 });
 
 $('#createTabWithUpload').addEventListener('click',()=>{
-  const input=$('#newTabName');
-  const label=input.value.trim();
-  if(!label){ $('#formMessage').className='form-message'; $('#formMessage').textContent='Escribe el nombre de la pestaña antes de seleccionar los archivos.'; input.focus(); return; }
-  pendingTabUploadName=label;
+  pendingTabUploadName='__AUTO__';
   $('#tabFileInput').click();
 });
 
 $('#newTabName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#addTabButton').click();}});
+
+$('#selectAllItems')?.addEventListener('click',()=>{
+  const allSelected=stagedFiles.length>0 && stagedFiles.every(item=>selectedItemKeys.has(item.key));
+  selectedItemKeys.clear();
+  if(!allSelected) stagedFiles.forEach(item=>selectedItemKeys.add(item.key));
+  renderFileOrganizer();
+});
+
 
 $('#tabOrganizer').addEventListener('input',e=>{
   const row=e.target.closest('.tab-organizer-row');
