@@ -132,7 +132,8 @@ function tabOptionsHtml(selectedId){
 function refreshTargetSelectors(){
   const fileTarget=$('#fileTargetTab');
   const linkTarget=$('#linkTargetTab');
-  [fileTarget,linkTarget].forEach(select=>{
+  const quickTarget=$('#quickTargetTab');
+  [fileTarget,linkTarget,quickTarget].forEach(select=>{
     if(!select) return;
     const previous=select.value;
     select.innerHTML=tabOptionsHtml(activityTabs.some(t=>t.id===previous)?previous:activityTabs[0].id);
@@ -199,6 +200,7 @@ function renderFileOrganizer(){
   syncTabMetadata();
   renderTabOrganizer();
   $('#fileCount').textContent=stagedFiles.length;
+  if($('#quickUploadCount')) $('#quickUploadCount').textContent=stagedFiles.length;
   if(!stagedFiles.length){
     host.innerHTML='<div class="organizer-empty"><strong>Aún no agregaste contenido</strong><span>Selecciona archivos o agrega enlaces y luego ordénalos aquí antes de publicar.</span></div>';
     renderPreview();
@@ -308,16 +310,50 @@ $$('.side-link').forEach(b=>b.addEventListener('click',()=>{course=b.dataset.cou
 $('#activityTitle').addEventListener('input',renderPreview);
 $('#description').addEventListener('input',renderPreview);
 
-$('#fileInput').addEventListener('change',e=>{
-  const selected=[...e.target.files];
-  const targetId=$('#fileTargetTab')?.value || activityTabs[0].id;
+function stageSelectedFiles(fileList,targetId){
+  const selected=[...fileList];
+  if(!selected.length) return 0;
   const targetTab=activityTabs.find(t=>t.id===targetId) || activityTabs[0];
   selected.forEach(file=>stagedFiles.push({
     key:uid(), existing:false, kind:'file', file, name:file.name, type:file.type||'', path:'', url:'',
     label:baseName(file.name), category:inferCategory(file.name), note:'', tabId:targetTab.id, tabLabel:targetTab.label, tabOrder:targetTab.order, embed:false, order:stagedFiles.length
   }));
-  e.target.value='';
   renderFileOrganizer();
+  return selected.length;
+}
+
+$('#fileInput').addEventListener('change',e=>{
+  const targetId=$('#fileTargetTab')?.value || activityTabs[0].id;
+  stageSelectedFiles(e.target.files,targetId);
+  e.target.value='';
+});
+
+function setQuickUploadOpen(open){
+  const host=$('#quickUpload');
+  if(!host) return;
+  host.classList.toggle('open',open);
+  $('#quickUploadToggle')?.setAttribute('aria-expanded',String(open));
+  $('#quickUploadPanel')?.setAttribute('aria-hidden',String(!open));
+  document.body.classList.toggle('quick-panel-open',open && matchMedia('(max-width:680px)').matches);
+}
+
+$('#quickUploadToggle')?.addEventListener('click',()=>setQuickUploadOpen(true));
+$('#quickUploadClose')?.addEventListener('click',()=>setQuickUploadOpen(false));
+$('#quickAddFiles')?.addEventListener('click',()=>$('#quickFileInput')?.click());
+$('#organizerQuickAdd')?.addEventListener('click',()=>setQuickUploadOpen(true));
+$('#quickFileInput')?.addEventListener('change',e=>{
+  const targetId=$('#quickTargetTab')?.value || activityTabs[0].id;
+  const count=stageSelectedFiles(e.target.files,targetId);
+  e.target.value='';
+  if(count){
+    const msg=$('#formMessage');
+    msg.className='form-message success';
+    msg.textContent=`${count} archivo(s) agregados rápidamente. Puedes seguir añadiendo sin volver al inicio.`;
+  }
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && $('#quickUpload')?.classList.contains('open')) setQuickUploadOpen(false);
 });
 
 $('#tabFileInput').addEventListener('change',e=>{

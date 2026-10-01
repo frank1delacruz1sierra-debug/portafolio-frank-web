@@ -114,6 +114,9 @@
           <section class="file-organizer-section">
             <div class="subsection-head"><div><p class="eyebrow">ORDEN DE PUBLICACIÓN</p><h3>Organiza archivos y enlaces</h3></div><span>↑ ↓ para ordenar</span></div>
             <div class="file-organizer" id="fileOrganizer"></div>
+            <div class="organizer-quick-footer">
+              <button type="button" id="organizerQuickAdd">＋ Agregar más archivos sin volver arriba</button>
+            </div>
           </section>
 
           <section class="publish-preview">
@@ -137,6 +140,24 @@
     </section>
   </main>
 
+
+  <div class="quick-upload" id="quickUpload">
+    <button class="quick-upload-toggle" type="button" id="quickUploadToggle" aria-expanded="false" aria-controls="quickUploadPanel">
+      <span>＋</span><strong>Carga rápida</strong><small id="quickUploadCount">0</small>
+    </button>
+    <section class="quick-upload-panel" id="quickUploadPanel" aria-hidden="true">
+      <div class="quick-upload-head">
+        <div><p class="eyebrow">ACCESO RÁPIDO</p><strong>Agregar más archivos</strong></div>
+        <button type="button" class="quick-upload-close" id="quickUploadClose" aria-label="Cerrar">×</button>
+      </div>
+      <label>Pestaña de destino
+        <select id="quickTargetTab"></select>
+      </label>
+      <input type="file" id="quickFileInput" multiple hidden />
+      <button type="button" class="quick-upload-add" id="quickAddFiles">＋ Seleccionar varios archivos</button>
+      <p>Permanece disponible mientras editas. Los nuevos archivos se agregan sin llevarte al inicio del formulario.</p>
+    </section>
+  </div>
 
   <div class="password-modal" id="passwordModal" aria-hidden="true">
     <div class="password-backdrop" data-close-password></div>
