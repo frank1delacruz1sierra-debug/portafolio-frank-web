@@ -228,9 +228,26 @@
     </section>
   </div>
 
+
+  <!-- Accesos flotantes: asistente IA, WhatsApp e Intranet UPLA -->
+  <div class="quick-contact-dock" aria-label="Accesos rápidos">
+    <a class="quick-contact whatsapp-contact" href="https://wa.me/?text=Hola%2C%20llegu%C3%A9%20desde%20tu%20portafolio%20web." target="_blank" rel="noopener noreferrer" aria-label="Abrir WhatsApp" title="WhatsApp">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.6 4.1 1.6 5.9L0 24l6.5-1.7a12 12 0 0 0 5.6 1.4h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.5-8.4ZM12.1 21.7h-.1a9.9 9.9 0 0 1-5-1.4l-.4-.2-3.9 1 1-3.8-.3-.4a9.8 9.8 0 0 1-1.5-5.2C1.9 6.3 6.5 1.8 12.1 1.8c2.6 0 5.1 1 7 2.9a9.8 9.8 0 0 1 2.9 7c0 5.5-4.5 10-9.9 10Zm5.5-7.5c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.2-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6l.5-.6c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.6-.1-.2-.7-1.6-.9-2.1-.2-.5-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.8s1.2 3.2 1.4 3.4c.2.2 2.4 3.7 5.8 5.1.8.3 1.4.5 1.8.6.8.2 1.5.2 2.1.1.7-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4Z"/></svg>
+    </a>
+    <a class="quick-contact intranet-contact" href="https://intranet.upla.edu.pe/sesion" target="_blank" rel="noopener noreferrer" aria-label="Abrir Intranet UPLA" title="Intranet UPLA"><span>UPLA</span></a>
+    <button class="quick-contact ai-contact" id="aiChatToggle" type="button" aria-label="Abrir asistente de inteligencia artificial" title="Asistente IA"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a2 2 0 0 1 2 2v.3a7 7 0 0 1 5.7 5.7h.3a2 2 0 1 1 0 4h-.3a7 7 0 0 1-5.7 5.7v.3a2 2 0 1 1-4 0v-.3a7 7 0 0 1-5.7-5.7H4a2 2 0 1 1 0-4h.3A7 7 0 0 1 10 4.3V4a2 2 0 0 1 2-2Zm-3 8a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 9 10Zm6 0a1.3 1.3 0 1 0 0 2.6A1.3 1.3 0 0 0 15 10Zm-6 4.2a.8.8 0 0 0-.6 1.3 4.7 4.7 0 0 0 7.2 0 .8.8 0 0 0-1.2-1 3.1 3.1 0 0 1-4.8 0 .8.8 0 0 0-.6-.3Z"/></svg></button>
+  </div>
+  <section class="ai-chat-panel" id="aiChatPanel" aria-label="Chat con asistente IA" aria-hidden="true">
+    <header class="ai-chat-header"><div class="ai-avatar">✦</div><div class="ai-chat-heading"><strong>Asistente IA</strong><span>Portafolio Frank.Dev</span></div><button id="aiChatClose" type="button" aria-label="Cerrar chat">×</button></header>
+    <div class="ai-chat-messages" id="aiChatMessages" aria-live="polite"><div class="ai-message bot-message">¡Hola! 👋 Soy el asistente del portafolio. Puedo ayudarte a encontrar actividades y orientarte sobre este sitio. ¿Qué necesitas?</div></div>
+    <form class="ai-chat-form" id="aiChatForm"><input id="aiChatInput" type="text" maxlength="1000" placeholder="Escribe tu pregunta…" autocomplete="off" aria-label="Tu mensaje" required><button type="submit" aria-label="Enviar mensaje">➤</button></form>
+    <p class="ai-chat-note">Asistente con IA · No compartas contraseñas ni datos privados.</p>
+  </section>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="cloud.js"></script>
   <script src="script.js"></script>
+  <script src="ai-chat.js"></script>
 </body>
 </html>

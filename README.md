@@ -18,3 +18,7 @@ Los enlaces externos se muestran de forma destacada en la portada. El panel perm
 
 ## Enlaces compartidos
 Los enlaces de Figma, GitHub, Drive, YouTube u otras webs se publican junto con los archivos. Si se deja un enlace escrito en el campo al pulsar Publicar, la web lo incorpora automáticamente.
+
+
+## Asistente IA y accesos rápidos
+Se añadieron accesos flotantes para el chat de IA, WhatsApp e Intranet UPLA. Consulta `CONFIGURAR_ASISTENTE_IA.md` para activar el backend de IA y personalizar el número de WhatsApp.
