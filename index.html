@@ -230,7 +230,7 @@
 
 
   <!-- Accesos flotantes: asistente IA, WhatsApp e Intranet UPLA -->
-  <div class="quick-contact-dock" aria-label="Accesos rápidos">
+  <div class="quick-contact-dock" aria-label="Accesos rápidos" style="position:fixed!important;right:22px!important;bottom:22px!important;z-index:2147483000!important;display:flex!important;visibility:visible!important;opacity:1!important;align-items:center;gap:12px;padding:8px;border-radius:999px;background:rgba(8,13,27,.92);box-shadow:0 12px 40px rgba(0,0,0,.4)">
     <a class="quick-contact whatsapp-contact" href="https://wa.me/?text=Hola%2C%20llegu%C3%A9%20desde%20tu%20portafolio%20web." target="_blank" rel="noopener noreferrer" aria-label="Abrir WhatsApp" title="WhatsApp">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.6 4.1 1.6 5.9L0 24l6.5-1.7a12 12 0 0 0 5.6 1.4h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.5-8.4ZM12.1 21.7h-.1a9.9 9.9 0 0 1-5-1.4l-.4-.2-3.9 1 1-3.8-.3-.4a9.8 9.8 0 0 1-1.5-5.2C1.9 6.3 6.5 1.8 12.1 1.8c2.6 0 5.1 1 7 2.9a9.8 9.8 0 0 1 2.9 7c0 5.5-4.5 10-9.9 10Zm5.5-7.5c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.2-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6l.5-.6c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.6-.1-.2-.7-1.6-.9-2.1-.2-.5-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.8s1.2 3.2 1.4 3.4c.2.2 2.4 3.7 5.8 5.1.8.3 1.4.5 1.8.6.8.2 1.5.2 2.1.1.7-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4Z"/></svg>
     </a>
@@ -243,6 +243,7 @@
     <form class="ai-chat-form" id="aiChatForm"><input id="aiChatInput" type="text" maxlength="1000" placeholder="Escribe tu pregunta…" autocomplete="off" aria-label="Tu mensaje" required><button type="submit" aria-label="Enviar mensaje">➤</button></form>
     <p class="ai-chat-note">Asistente con IA · No compartas contraseñas ni datos privados.</p>
   </section>
+
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
