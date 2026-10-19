@@ -352,3 +352,16 @@ body{min-width:0}
 .quick-contact{width:54px;height:54px;min-width:54px;min-height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .ai-chat-panel{z-index:2147482999!important}
 @media(max-width:560px){.quick-contact-dock{right:10px!important;bottom:12px!important;gap:8px!important;padding:6px!important}.quick-contact{width:47px;height:47px;min-width:47px;min-height:47px}}
+
+
+/* Barra inferior accesible: tres accesos circulares visibles en index */
+.quick-contact-dock{position:fixed!important;right:20px!important;bottom:20px!important;z-index:2147483000!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:12px!important;padding:9px!important;margin:0!important;border:1px solid rgba(255,255,255,.2)!important;border-radius:999px!important;background:rgba(7,13,28,.94)!important;box-shadow:0 10px 35px rgba(0,0,0,.45)!important;visibility:visible!important;opacity:1!important;overflow:visible!important}
+.quick-contact-dock .quick-contact{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;flex:0 0 58px!important;padding:0!important;margin:0!important;border:2px solid rgba(255,255,255,.85)!important;border-radius:50%!important;overflow:hidden!important;text-decoration:none!important;cursor:pointer!important;box-shadow:0 5px 18px rgba(0,0,0,.35)!important;transition:transform .18s ease,filter .18s ease!important}
+.quick-contact-dock .quick-contact:hover{transform:translateY(-3px) scale(1.04)!important;filter:brightness(1.08)!important}
+.quick-contact-dock .quick-contact svg{display:block!important;width:30px!important;height:30px!important;max-width:70%!important;max-height:70%!important;fill:currentColor!important}
+.quick-contact-dock .whatsapp-contact{background:#25d366!important;color:#fff!important}
+.quick-contact-dock .intranet-contact{background:linear-gradient(135deg,#fff,#dce8ff)!important;color:#123c78!important}
+.quick-contact-dock .upla-logo{display:grid;place-items:center;width:100%;height:100%;font:900 13px/1 Arial,sans-serif;letter-spacing:-.5px;color:#123c78}
+.quick-contact-dock .ai-contact{background:linear-gradient(135deg,#8b5cf6,#2563eb)!important;color:#fff!important}
+.ai-chat-panel{z-index:2147482999!important}
+@media(max-width:560px){.quick-contact-dock{right:10px!important;bottom:12px!important;gap:8px!important;padding:6px!important}.quick-contact-dock .quick-contact{width:49px!important;height:49px!important;min-width:49px!important;min-height:49px!important;flex-basis:49px!important}.quick-contact-dock .quick-contact svg{width:25px!important;height:25px!important}.ai-chat-panel{right:10px!important;bottom:78px!important;width:calc(100vw - 20px)!important;height:min(520px,calc(100dvh - 100px))!important}}
