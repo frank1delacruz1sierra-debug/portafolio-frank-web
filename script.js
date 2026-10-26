@@ -180,9 +180,10 @@ function makeWeekCard(week, a){
   card.style.animationDelay=`${(week-1)*70}ms`;
   const top=document.createElement('div');
   top.className='week-top';
-  top.innerHTML=`<div class="week-number">${String(week).padStart(2,'0')}</div>${a?'<span class="published-dot" title="Actividad publicada"></span>':''}`;
+  const globalWeek=(activeUnit-1)*4+week;
+  top.innerHTML=`<div class="week-number">${String(globalWeek).padStart(2,'0')}</div>${a?'<span class="published-dot" title="Actividad publicada"></span>':''}`;
   card.appendChild(top);
-  const h=document.createElement('h3'); h.textContent=a?.weekTitle || `Semana ${week}`; card.appendChild(h);
+  const h=document.createElement('h3'); h.textContent=a?.weekTitle || `Semana ${globalWeek}`; card.appendChild(h);
 
   if(a){
     if(a.title){ const t=document.createElement('h4'); t.className='week-activity-title'; t.textContent=a.title; card.appendChild(t); }

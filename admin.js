@@ -71,7 +71,8 @@ async function renderWeeks(){
     const state = !a ? 'Vacía' : a.status==='draft' ? 'Borrador' : 'Publicada';
     const b=document.createElement('button');
     b.className=`admin-week ${i===week?'active':''}`;
-    b.innerHTML=`<div class="admin-week-top"><strong>${escapeHtml(a?.weekTitle || `Semana ${i}`)}</strong><span class="week-state ${a?.status==='published'?'published':a?.status==='draft'?'draft':''}">${state}</span></div><p>${a?(a.title||a.description||'Actividad guardada').slice(0,75):'Selecciona esta semana para preparar una actividad.'}</p>`;
+    const globalWeek=(unit-1)*4+i;
+    b.innerHTML=`<div class="admin-week-top"><strong>${escapeHtml(a?.weekTitle || `Semana ${globalWeek}`)}</strong><span class="week-state ${a?.status==='published'?'published':a?.status==='draft'?'draft':''}">${state}</span></div><p>${a?(a.title||a.description||'Actividad guardada').slice(0,75):'Selecciona esta semana para preparar una actividad.'}</p>`;
     b.onclick=()=>{week=i;renderAll()};
     h.appendChild(b);
   }
@@ -257,7 +258,7 @@ function renderPreview(){
   const description=$('#description')?.value.trim()||'La descripción aparecerá aquí cuando la escribas.';
   $('#previewTitle').textContent=title;
   $('#previewDescription').textContent=description;
-  $('#previewPosition').textContent=`${courses[course].short} · U${unit} · S${week}`;
+  $('#previewPosition').textContent=`${courses[course].short} · U${unit} · Semana ${(unit-1)*4+week}`;
   const groups=activityTabs.map(tab=>({tab,items:stagedFiles.filter(item=>item.tabId===tab.id)})).filter(group=>group.items.length);
   $('#previewFiles').innerHTML=groups.length
     ? groups.map(group=>`<div class="preview-tab-group"><strong class="preview-tab-title">${escapeHtml(group.tab.label)}</strong>${group.items.map(previewFile).join('')}</div>`).join('')
@@ -267,7 +268,7 @@ function renderPreview(){
 async function loadEditor(){
   currentActivity=await PortfolioDB.get(course,unit,week);
   selectedItemKeys.clear();
-  $('#editorTitle').textContent=`Unidad ${unit} · ${currentActivity?.weekTitle || `Semana ${week}`}`;
+  $('#editorTitle').textContent=`Unidad ${unit} · ${currentActivity?.weekTitle || `Semana ${(unit-1)*4+week}`}`;
   $('#weekTitleInput').value=currentActivity?.weekTitle||'';
   $('#activityTitle').value=currentActivity?.title||'';
   $('#description').value=currentActivity?.description||'';
