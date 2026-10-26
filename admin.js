@@ -72,7 +72,7 @@ async function renderWeeks(){
     const b=document.createElement('button');
     b.className=`admin-week ${i===week?'active':''}`;
     const globalWeek=(unit-1)*4+i;
-    b.innerHTML=`<div class="admin-week-top"><strong>${escapeHtml(a?.weekTitle || `Semana ${globalWeek}`)}</strong><span class="week-state ${a?.status==='published'?'published':a?.status==='draft'?'draft':''}">${state}</span></div><p>${a?(a.title||a.description||'Actividad guardada').slice(0,75):'Selecciona esta semana para preparar una actividad.'}</p>`;
+    b.innerHTML=`<div class="admin-week-top"><strong>Semana ${globalWeek}</strong><span class="week-state ${a?.status==='published'?'published':a?.status==='draft'?'draft':''}">${state}</span></div><p>${a?.weekTitle?`Nombre: ${escapeHtml(a.weekTitle)} · `:''}${a?(a.title||a.description||'Actividad guardada').slice(0,75):'Selecciona esta semana para preparar una actividad.'}</p>`;
     b.onclick=()=>{week=i;renderAll()};
     h.appendChild(b);
   }
@@ -268,7 +268,7 @@ function renderPreview(){
 async function loadEditor(){
   currentActivity=await PortfolioDB.get(course,unit,week);
   selectedItemKeys.clear();
-  $('#editorTitle').textContent=`Unidad ${unit} · ${currentActivity?.weekTitle || `Semana ${(unit-1)*4+week}`}`;
+  $('#editorTitle').textContent=`Unidad ${unit} · Semana ${(unit-1)*4+week}`;
   $('#weekTitleInput').value=currentActivity?.weekTitle||'';
   $('#activityTitle').value=currentActivity?.title||'';
   $('#description').value=currentActivity?.description||'';
@@ -317,7 +317,7 @@ $('#saveWeekTitle').addEventListener('click',async()=>{
   try{
     await PortfolioDB.saveWeekTitle(course,unit,week,name);
     if(currentActivity) currentActivity.weekTitle=name;
-    $('#editorTitle').textContent=`Unidad ${unit} · ${name}`;
+    $('#editorTitle').textContent=`Unidad ${unit} · Semana ${(unit-1)*4+week}`;
     msg.className='form-message success';msg.textContent='Nombre de la semana guardado.';
     await renderWeeks();
   }catch(err){msg.className='form-message';msg.textContent=`No se pudo guardar el nombre: ${err.message}`;}

@@ -183,7 +183,8 @@ function makeWeekCard(week, a){
   const globalWeek=(activeUnit-1)*4+week;
   top.innerHTML=`<div class="week-number">${String(globalWeek).padStart(2,'0')}</div>${a?'<span class="published-dot" title="Actividad publicada"></span>':''}`;
   card.appendChild(top);
-  const h=document.createElement('h3'); h.textContent=a?.weekTitle || `Semana ${globalWeek}`; card.appendChild(h);
+  const h=document.createElement('h3'); h.textContent=`Semana ${globalWeek}`; card.appendChild(h);
+  if(a?.weekTitle){ const custom=document.createElement('p'); custom.className='week-custom-title'; custom.textContent=a.weekTitle; card.appendChild(custom); }
 
   if(a){
     if(a.title){ const t=document.createElement('h4'); t.className='week-activity-title'; t.textContent=a.title; card.appendChild(t); }
