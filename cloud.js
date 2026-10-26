@@ -82,6 +82,7 @@ const PortfolioCloud = (() => {
       course: row.course,
       unit: row.unit_number,
       week: row.week_number,
+      weekTitle: row.week_title || '',
       title: row.title || '',
       description: row.description || '',
       status: row.status || 'published',
@@ -208,6 +209,7 @@ const PortfolioCloud = (() => {
         course,
         unit_number: unit,
         week_number: week,
+        week_title: String(currentActivity?.weekTitle || '').trim(),
         title: String(title || '').trim(),
         description: String(description || '').trim(),
         status: status === 'draft' ? 'draft' : 'published',
@@ -321,6 +323,20 @@ const PortfolioCloud = (() => {
     return session;
   }
 
+
+  async function saveWeekTitle(course, unit, week, weekTitle) {
+    const existing = await get(course, unit, week);
+    const row = {
+      id: id(course, unit, week), course, unit_number: unit, week_number: week,
+      week_title: String(weekTitle || '').trim(),
+      title: existing?.title || '', description: existing?.description || '',
+      status: existing?.status || 'draft', files: existing?.files || [],
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await client().from('activities').upsert(row, { onConflict: 'id' });
+    if (error) throw error;
+    return row.week_title;
+  }
   return {
     isConfigured,
     client,
@@ -328,6 +344,7 @@ const PortfolioCloud = (() => {
     listAll,
     save,
     remove,
+    saveWeekTitle,
     signIn,
     sendPasswordReset,
     updateRecoveredPassword,
@@ -341,5 +358,6 @@ const PortfolioDB = {
   get: PortfolioCloud.get,
   listAll: PortfolioCloud.listAll,
   save: PortfolioCloud.save,
-  remove: PortfolioCloud.remove
+  remove: PortfolioCloud.remove,
+  saveWeekTitle: PortfolioCloud.saveWeekTitle
 };

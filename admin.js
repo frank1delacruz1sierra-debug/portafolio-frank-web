@@ -71,7 +71,7 @@ async function renderWeeks(){
     const state = !a ? 'Vacía' : a.status==='draft' ? 'Borrador' : 'Publicada';
     const b=document.createElement('button');
     b.className=`admin-week ${i===week?'active':''}`;
-    b.innerHTML=`<div class="admin-week-top"><strong>Semana ${i}</strong><span class="week-state ${a?.status==='published'?'published':a?.status==='draft'?'draft':''}">${state}</span></div><p>${a?(a.title||a.description||'Actividad guardada').slice(0,75):'Selecciona esta semana para preparar una actividad.'}</p>`;
+    b.innerHTML=`<div class="admin-week-top"><strong>${escapeHtml(a?.weekTitle || `Semana ${i}`)}</strong><span class="week-state ${a?.status==='published'?'published':a?.status==='draft'?'draft':''}">${state}</span></div><p>${a?(a.title||a.description||'Actividad guardada').slice(0,75):'Selecciona esta semana para preparar una actividad.'}</p>`;
     b.onclick=()=>{week=i;renderAll()};
     h.appendChild(b);
   }
@@ -267,7 +267,8 @@ function renderPreview(){
 async function loadEditor(){
   currentActivity=await PortfolioDB.get(course,unit,week);
   selectedItemKeys.clear();
-  $('#editorTitle').textContent=`Unidad ${unit} · Semana ${week}`;
+  $('#editorTitle').textContent=`Unidad ${unit} · ${currentActivity?.weekTitle || `Semana ${week}`}`;
+  $('#weekTitleInput').value=currentActivity?.weekTitle||'';
   $('#activityTitle').value=currentActivity?.title||'';
   $('#description').value=currentActivity?.description||'';
   $('#fileInput').value='';
@@ -307,6 +308,20 @@ async function renderAll(){
 }
 
 $$('.side-link').forEach(b=>b.addEventListener('click',()=>{course=b.dataset.course;unit=1;week=1;renderAll()}));
+$('#saveWeekTitle').addEventListener('click',async()=>{
+  const button=$('#saveWeekTitle'), input=$('#weekTitleInput'), msg=$('#formMessage');
+  const name=input.value.trim();
+  if(!name){msg.className='form-message';msg.textContent='Escribe el nombre que tendrá esta semana.';input.focus();return;}
+  button.disabled=true;
+  try{
+    await PortfolioDB.saveWeekTitle(course,unit,week,name);
+    if(currentActivity) currentActivity.weekTitle=name;
+    $('#editorTitle').textContent=`Unidad ${unit} · ${name}`;
+    msg.className='form-message success';msg.textContent='Nombre de la semana guardado.';
+    await renderWeeks();
+  }catch(err){msg.className='form-message';msg.textContent=`No se pudo guardar el nombre: ${err.message}`;}
+  finally{button.disabled=false;}
+});
 $('#activityTitle').addEventListener('input',renderPreview);
 $('#description').addEventListener('input',renderPreview);
 

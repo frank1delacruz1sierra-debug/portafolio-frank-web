@@ -18,12 +18,3 @@ Los enlaces externos se muestran de forma destacada en la portada. El panel perm
 
 ## Enlaces compartidos
 Los enlaces de Figma, GitHub, Drive, YouTube u otras webs se publican junto con los archivos. Si se deja un enlace escrito en el campo al pulsar Publicar, la web lo incorpora automáticamente.
-
-
-## Asistente IA y accesos rápidos
-Se añadieron accesos flotantes para el chat de IA, WhatsApp e Intranet UPLA. Consulta `CONFIGURAR_ASISTENTE_IA.md` para activar el backend de IA y personalizar el número de WhatsApp.
-
-
-## IA general sin backend propio
-
-El asistente está configurado para ejecutar WebLLM con el modelo Qwen2.5 1.5B directamente en el navegador, sin API de pago ni servidor de IA. Consulta `CONFIGURAR_ASISTENTE_IA.md` para conocer compatibilidad, primera descarga y limitaciones. La web debe servirse por HTTPS o desde un servidor local; no la abras con `file://`.
