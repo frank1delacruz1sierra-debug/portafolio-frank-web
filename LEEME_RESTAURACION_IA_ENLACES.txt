@@ -1,0 +1,11 @@
+FRANK.DEV — versión integrada
+
+Se conservaron los archivos de la versión corregida de semanas/actividades y se restauraron los accesos circulares a WhatsApp Web, Intranet UPLA y el chat IA.
+
+IMPORTANTE: para que las respuestas de Gemini funcionen, debe estar desplegada en Supabase la Edge Function ai-chat y configurada la variable de entorno GEMINI_API_KEY en Supabase. No pongas la clave dentro de archivos públicos del sitio.
+
+Para corregir week_title, ejecuta en SQL Editor de Supabase:
+ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS week_title TEXT NOT NULL DEFAULT '';
+NOTIFY pgrst, 'reload schema';
+
+Después, vuelve a publicar la actividad y recarga la web con Ctrl+F5.

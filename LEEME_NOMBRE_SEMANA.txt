@@ -1,9 +1,12 @@
-CAMBIO: NOMBRE PERSONALIZADO DE SEMANA
+SOLUCION: ERROR DE LA COLUMNA week_title
 
-1. Descomprime el ZIP y abre el proyecto como de costumbre.
-2. En Supabase, abre SQL Editor y ejecuta el contenido de MIGRACION_NOMBRE_SEMANA.sql.
-3. Abre admin.html e inicia sesión. Selecciona curso y unidad.
-4. En “Nombre de la semana”, escribe el nombre deseado y pulsa “Guardar nombre”.
-5. El nombre se mostrará en el administrador y en la página pública.
+1. Entra a tu proyecto de Supabase.
+2. Abre SQL Editor y crea una consulta nueva.
+3. Abre el archivo MIGRACION_NOMBRE_SEMANA.sql de este ZIP, copia todo su contenido y pégalo en el editor SQL de Supabase.
+4. Pulsa Run y espera a que termine sin errores.
+5. Vuelve al portafolio, recarga el administrador con Ctrl + F5 e intenta publicar la actividad otra vez.
 
-Nota: la columna week_title debe existir en Supabase para guardar los nombres.
+El script agrega la columna week_title si falta y solicita recargar la caché del esquema de Supabase.
+No necesitas borrar la actividad ni volver a subir los archivos para corregir este error.
+
+Si el error continúa, confirma que ejecutaste el SQL en el mismo proyecto de Supabase que utiliza supabase-config.js y que la tabla es public.activities.
