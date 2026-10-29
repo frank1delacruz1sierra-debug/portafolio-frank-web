@@ -1,0 +1,14 @@
+FRANK.DEV — IA GENERAL CON GEMINI
+
+Este ZIP conserva los archivos del proyecto corregido y reemplaza ai-chat.js por la versión que consulta Gemini para responder preguntas generales.
+
+IMPORTANTE: por seguridad, el archivo NO contiene una clave API real. Para activar las respuestas:
+1. Entra en Google AI Studio y crea una clave de Gemini nueva.
+2. Abre ai-chat.js y busca la línea GEMINI_API_KEY.
+3. Reemplaza PEGA_AQUI_TU_NUEVA_CLAVE_GEMINI por tu clave.
+4. Guarda el archivo y súbelo al repositorio junto con los demás archivos.
+5. Recarga la web con Ctrl+F5 y prueba una pregunta general.
+
+ADVERTENCIA DE SEGURIDAD: una clave dentro de JavaScript público puede verla cualquiera que visite la web. Para un despliegue seguro, la clave debe guardarse en un backend (por ejemplo, una función de Supabase) y nunca en el navegador. Si usas una clave expuesta anteriormente, revócala y crea otra.
+
+Los enlaces de WhatsApp e Intranet UPLA se conservan del ZIP base. La conexión real con Gemini requiere una clave válida y que el proyecto tenga acceso al modelo/API.
