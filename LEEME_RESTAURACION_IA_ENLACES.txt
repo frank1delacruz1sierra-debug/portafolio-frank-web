@@ -1,11 +1,13 @@
-FRANK.DEV — versión integrada
+FRANK.DEV — RESTAURACIÓN DE ACCESOS (29-10-2026)
 
-Se conservaron los archivos de la versión corregida de semanas/actividades y se restauraron los accesos circulares a WhatsApp Web, Intranet UPLA y el chat IA.
+Este paquete contiene index.html, styles.css y los scripts con caché renovada.
+Los accesos circulares están en la esquina inferior derecha: WhatsApp Web, Intranet UPLA y Chat IA.
 
-IMPORTANTE: para que las respuestas de Gemini funcionen, debe estar desplegada en Supabase la Edge Function ai-chat y configurada la variable de entorno GEMINI_API_KEY en Supabase. No pongas la clave dentro de archivos públicos del sitio.
+IMPORTANTE PARA GITHUB PAGES:
+1. Descomprime el ZIP.
+2. Sube TODOS los archivos y carpetas del contenido directamente a la carpeta que publica GitHub Pages (normalmente la raíz del repositorio). No subas el ZIP como un solo archivo.
+3. Acepta reemplazar index.html, styles.css y los JS.
+4. En GitHub abre Settings > Pages y verifica que la rama/carpeta seleccionada sea la misma donde pusiste index.html.
+5. Espera el despliegue y abre la web con Ctrl+F5 o en una ventana privada.
 
-Para corregir week_title, ejecuta en SQL Editor de Supabase:
-ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS week_title TEXT NOT NULL DEFAULT '';
-NOTIFY pgrst, 'reload schema';
-
-Después, vuelve a publicar la actividad y recarga la web con Ctrl+F5.
+El botón de IA abre el chat; las respuestas de Gemini requieren configurar/desplegar la función ai-chat en Supabase y guardar GEMINI_API_KEY como secreto de servidor. No pongas la clave en el HTML ni en archivos públicos.
